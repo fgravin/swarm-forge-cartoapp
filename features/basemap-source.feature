@@ -12,7 +12,7 @@ Feature: Basemap source
   Scenario Outline: basemap-source 1: the map draws the chosen basemap and credits only its provider
     Given the user chooses the basemap <previous_basemap>
     When the user chooses the basemap <basemap>
-    Then the map draws raster tiles from <tile_url>
+    Then the map draws raster tiles only from <tile_url>
     And the map credits only <attribution>
 
     Examples:

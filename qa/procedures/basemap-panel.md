@@ -15,13 +15,14 @@ as "Zoom in".
 ## basemap-panel 1: the panel offers each basemap under its provider
 
 1. Open the application.
-2. Expect a panel titled "Fonds de plan" over the map. It lies entirely inside
-   the map, in its top left corner: its left edge is nearer the map's left
-   edge than the map's right edge, and its top edge is nearer the map's top
-   edge than the map's bottom edge.
+2. Expect a panel over the map whose visible title reads exactly
+   "Fonds de plan". It lies entirely inside the map, in its top left corner:
+   its left edge is nearer the map's left edge than the map's right edge, and
+   its top edge is nearer the map's top edge than the map's bottom edge.
 3. Expect the panel not to cover the "Zoom in" button, the map credits, or the
    view indicator.
-4. Expect the panel to hold two groups, in this order: "CARTO", then "Esri".
+4. Expect the panel to hold two groups, whose visible titles read, in this
+   order: "CARTO", then "Esri".
 5. Expect the "CARTO" group to offer, in this order, "Positron" then
    "Dark Matter".
 6. Expect the "Esri" group to offer, in this order, "World Imagery" then

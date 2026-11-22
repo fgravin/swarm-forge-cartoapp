@@ -26,6 +26,10 @@ Run the steps once for each row of the table.
    CARTO from each of the four servers `a`, `b`, `c` and `d`, including the
    tile that holds the initial centre, whose URL ends with "Centre tile".
 5. Expect the map credits to contain "Credits" and none of "Not credited".
+6. Press the "Zoom in" button of the map once, and wait until the view
+   indicator ends with `zoom 6.0`. Expect the map to request tiles at zoom 7
+   from the "Then choose" basemap, and no tile at all from the "First choice"
+   basemap during this step: the first choice was replaced, not covered.
 
 | First choice          | Then choose           | Tile URL                                                                                        | Centre tile                              | Credits                              | Not credited              |
 |-----------------------|-----------------------|-------------------------------------------------------------------------------------------------|------------------------------------------|--------------------------------------|---------------------------|

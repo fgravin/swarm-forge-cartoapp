@@ -11,7 +11,7 @@ Feature: Basemap selection
   # basemap-selection 1
   Scenario Outline: basemap-selection 1: Positron is selected when the application starts
     Then the basemap <basemap> is the only one selected
-    And the map draws raster tiles from <tile_url>
+    And the map draws raster tiles only from <tile_url>
     And the map credits only <attribution>
 
     Examples:
@@ -30,6 +30,7 @@ Feature: Basemap selection
       | Dark Matter           | World Imagery         |
       | World Imagery         | World Topographic Map |
       | World Topographic Map | Positron              |
+      | Dark Matter           | Dark Matter           |
 
   # basemap-selection 3
   Scenario Outline: basemap-selection 3: changing the basemap keeps the view

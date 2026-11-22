@@ -43,6 +43,9 @@ zoom 6. The tile that holds the initial centre is column 33, row 22.
    checked, and the three other basemaps not to be checked.
 7. Click "Positron". Expect "Positron" to be checked, and the three other
    basemaps not to be checked.
+8. Click "Positron" again. Expect "Positron" to stay checked, and the three
+   other basemaps to stay not checked: choosing the selected basemap does not
+   leave the map without one.
 
 ## basemap-selection 3: changing the basemap keeps the view
 
