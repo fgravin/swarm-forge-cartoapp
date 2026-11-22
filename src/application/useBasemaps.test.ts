@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
-import { BASEMAPS, rasterTiles, type RasterTiles } from '../domain/basemaps'
+import { BASEMAPS, type BasemapId } from '../domain/basemaps'
+import { rasterTiles, type RasterTiles } from '../domain/rasterTiles'
 import type { BasemapDisplay } from './mapPort'
-import { useBasemaps } from './useBasemaps'
+import { useBasemaps, type BasemapGroup } from './useBasemaps'
+
+function selectedIds(groups: readonly BasemapGroup[]): readonly BasemapId[] {
+  return groups
+    .flatMap((group) => group.options)
+    .filter((option) => option.selected)
+    .map((option) => option.id)
+}
 
 function fakeDisplay() {
   const shown: RasterTiles[] = []
@@ -41,8 +49,7 @@ describe('useBasemaps', () => {
 
     select('world-imagery')
 
-    const selected = groups.value.flatMap((group) => group.options).filter((option) => option.selected)
-    expect(selected.map((option) => option.id)).toEqual(['world-imagery'])
+    expect(selectedIds(groups.value)).toEqual(['world-imagery'])
   })
 
   it('shows the selected basemap on the display it is connected to', () => {
@@ -98,7 +105,7 @@ describe('useBasemaps', () => {
     select('dark-matter')
 
     expect(shown).toEqual([rasterTiles(BASEMAPS.positron)])
-    expect(groups.value[0]?.options[1]?.selected).toBe(true)
+    expect(selectedIds(groups.value)).toEqual(['dark-matter'])
   })
 
   it('shows basemaps only on the display connected last', () => {

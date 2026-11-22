@@ -1,5 +1,5 @@
 import type { MapPort } from '../../src/application/mapPort'
-import type { RasterTiles } from '../../src/domain/basemaps'
+import type { RasterTiles } from '../../src/domain/rasterTiles'
 import type { MapView } from '../../src/domain/mapView'
 
 /** A map that records what the application draws on it, moved by the steps as a user would. */

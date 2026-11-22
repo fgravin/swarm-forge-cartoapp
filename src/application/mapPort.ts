@@ -1,4 +1,4 @@
-import type { RasterTiles } from '../domain/basemaps'
+import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
 
 /** What the application needs from a map to show a basemap. */

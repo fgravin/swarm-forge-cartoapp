@@ -6,17 +6,19 @@ export function parseNumber(text: string, what: string): number {
   return value
 }
 
-export function parseCount(text: string, what: string): number {
+function parseWholeNumber(text: string, what: string, minimum: number, expected: string): number {
   const value = Number(text)
-  if (text.trim() === '' || !Number.isInteger(value) || value < 0) {
-    throw new Error(`${what} must be a whole number, not "${text}"`)
+  if (text.trim() === '' || !Number.isInteger(value) || value < minimum) {
+    throw new Error(`${what} must be ${expected}, not "${text}"`)
   }
   return value
 }
 
+export function parseCount(text: string, what: string): number {
+  return parseWholeNumber(text, what, 0, 'a whole number')
+}
+
 /** A position in a list, counted from 1. */
 export function parsePosition(text: string, what: string): number {
-  const value = Number(text)
-  if (!Number.isInteger(value) || value < 1) throw new Error(`${what} must be a whole number from 1, not "${text}"`)
-  return value
+  return parseWholeNumber(text, what, 1, 'a whole number from 1')
 }

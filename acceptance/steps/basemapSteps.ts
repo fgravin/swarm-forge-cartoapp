@@ -1,13 +1,18 @@
 import { expect } from 'vitest'
 
 import type { BasemapOption } from '../../src/application/useBasemaps'
-import { tileServerUrls } from '../../src/domain/basemaps'
+import { tileServerUrls } from '../../src/domain/rasterTiles'
 import { step, type StepHandler } from '../runtime'
 import { parseCount, parseNumber, parsePosition } from './values'
 import type { World } from './world'
 
 function offeredBasemaps({ basemaps }: World): readonly BasemapOption[] {
   return basemaps.groups.value.flatMap((group) => group.options)
+}
+
+/** How many different basemaps the map has drawn, told apart by their tile URLs. */
+function distinctBasemapsDrawn({ map }: World): number {
+  return new Set(map.drawnBasemaps().map((basemap) => basemap.tileUrls.join(' '))).size
 }
 
 function chooseBasemap(world: World, name: string): void {
@@ -47,7 +52,7 @@ export const BASEMAP_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the map draws raster tiles only from (.+)$/, ({ map }, [tileUrl = '']) => {
-    expect(map.drawnBasemaps().at(-1)?.tiles).toEqual(tileServerUrls(tileUrl))
+    expect(map.drawnBasemaps().at(-1)?.tileUrls).toEqual(tileServerUrls(tileUrl))
   }),
 
   step(/^the map credits only (.+)$/, ({ map }, [attribution]) => {
@@ -57,7 +62,7 @@ export const BASEMAP_STEPS: readonly StepHandler<World>[] = [
   step(/^every basemap was drawn from tiles of (\S+) pixels up to zoom level (\S+)$/, (world, [size = '', zoom = '']) => {
     const drawn = world.map.drawnBasemaps()
     const expected = { tileSize: parseNumber(size, 'tile size'), maxZoom: parseNumber(zoom, 'maximum zoom') }
-    expect(new Set(drawn.map((tiles) => tiles.tiles.join(' '))).size).toBe(offeredBasemaps(world).length)
+    expect(distinctBasemapsDrawn(world)).toBe(offeredBasemaps(world).length)
     expect(drawn.map(({ tileSize, maxZoom }) => ({ tileSize, maxZoom }))).toEqual(drawn.map(() => expected))
   }),
 ]

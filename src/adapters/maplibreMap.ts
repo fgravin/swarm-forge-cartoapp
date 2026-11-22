@@ -2,7 +2,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { MapLibreMap, NavigationControl, type StyleSpecification } from 'maplibre-gl'
 
 import type { MapPort } from '../application/mapPort'
-import type { RasterTiles } from '../domain/basemaps'
+import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
 
 // One style for the life of the map: the basemap is a source and a layer swapped
@@ -33,7 +33,7 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
     if (map.getSource(BASEMAP)) map.removeSource(BASEMAP)
     map.addSource(BASEMAP, {
       type: 'raster',
-      tiles: [...basemap.tiles],
+      tiles: [...basemap.tileUrls],
       tileSize: basemap.tileSize,
       maxzoom: basemap.maxZoom,
       attribution: basemap.attribution,

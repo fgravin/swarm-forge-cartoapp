@@ -1,5 +1,8 @@
 {:entries [
+  {:name "useBasemaps", :namespace "application.useBasemaps", :complexity 3, :coverage 100.0, :crap 3.0}
+  {:name "tileServerUrls", :namespace "domain.rasterTiles", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "useMapView", :namespace "application.useMapView", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "formatDegrees", :namespace "domain.mapView", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "describeMapView", :namespace "domain.mapView", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "rasterTiles", :namespace "domain.rasterTiles", :complexity 1, :coverage 100.0, :crap 1.0}
 ]}

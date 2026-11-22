@@ -1,6 +1,7 @@
 import { computed, shallowRef, type ComputedRef } from 'vue'
 
-import { BASEMAP_PROVIDERS, BASEMAPS, INITIAL_BASEMAP, rasterTiles, type BasemapId } from '../domain/basemaps'
+import { BASEMAP_PROVIDERS, BASEMAPS, INITIAL_BASEMAP, type BasemapId } from '../domain/basemaps'
+import { rasterTiles } from '../domain/rasterTiles'
 import type { BasemapDisplay } from './mapPort'
 
 /** A basemap as the panel offers it. */
@@ -34,19 +35,19 @@ export function useBasemaps(): BasemapsState {
   )
   let display: BasemapDisplay | undefined
 
-  function show(): void {
+  function showSelected(): void {
     display?.showBasemap(rasterTiles(BASEMAPS[selected.value]))
   }
 
   function select(id: BasemapId): void {
     if (id === selected.value) return
     selected.value = id
-    show()
+    showSelected()
   }
 
   function connect(next: BasemapDisplay): void {
     display = next
-    show()
+    showSelected()
   }
 
   function disconnect(): void {
