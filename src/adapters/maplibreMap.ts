@@ -22,6 +22,8 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
     style: EMPTY_STYLE,
     center: [initialView.center.lng, initialView.center.lat],
     zoom: initialView.zoom,
+    // Credit the basemap alone: no default "MapLibre" entry beside its attribution.
+    attributionControl: {},
   })
   map.addControl(new NavigationControl(), 'top-right')
   const loaded = map.once('load')
