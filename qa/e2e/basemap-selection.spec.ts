@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 import { CARTO_CREDITS, ESRI_CREDITS } from './basemaps'
 import {
   basemapTiles,
+  boxOf,
   expectCentreTilesFrom,
   expectCredits,
   expectOnlySelected,
@@ -66,8 +67,7 @@ test('basemap-selection 3: changing the basemap keeps the view', async ({ page }
 
   await zoomInOnce(screen)
   await zoomInOnce(screen)
-  const map = await screen.map.boundingBox()
-  if (map === null) throw new Error('The map is not on screen.')
+  const map = await boxOf(screen.map)
   const x = map.x + map.width / 2
   const y = map.y + map.height / 2
   await page.mouse.move(x, y)

@@ -38,7 +38,11 @@ export async function expectOnlySelected(screen: MapScreen, selected: BasemapNam
   }
 }
 
-/** Expects the credits to contain `credited` and none of `notCredited`. */
+/**
+ * Expects the credits to contain `credited` and none of `notCredited`. The map
+ * credits the active basemap only (the features' "the map credits only"), so
+ * the credits read `credited` and nothing else, such as a credit for MapLibre.
+ */
 export async function expectCredits(
   screen: MapScreen,
   credited: string,
@@ -46,6 +50,21 @@ export async function expectCredits(
 ): Promise<void> {
   await expect(screen.credits).toContainText(credited)
   for (const text of notCredited) await expect(screen.credits).not.toContainText(text)
+  await expect(screen.credits).toHaveText(credited)
+}
+
+/** Where `locator` is on screen. */
+export async function boxOf(locator: Locator): Promise<Box> {
+  const box = await locator.boundingBox()
+  if (box === null) throw new Error(`${locator.toString()} is not on screen.`)
+  return box
+}
+
+export interface Box {
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
 }
 
 /** The tiles of `basemap` among `urls`. */

@@ -1,22 +1,9 @@
 import { expect, test, type Locator } from '@playwright/test'
 
-import { mapScreen } from './mapScreen'
+import { boxOf, mapScreen, type Box } from './mapScreen'
 import { serveTilesLocally } from './tiles'
 
 // Executable form of qa/procedures/basemap-panel.md.
-
-interface Box {
-  readonly x: number
-  readonly y: number
-  readonly width: number
-  readonly height: number
-}
-
-async function boxOf(locator: Locator): Promise<Box> {
-  const box = await locator.boundingBox()
-  if (box === null) throw new Error(`${locator.toString()} is not on screen.`)
-  return box
-}
 
 function overlaps(a: Box, b: Box): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
