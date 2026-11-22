@@ -1,0 +1,21 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "types": ["node", "vite/client"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "acceptance/**/*.ts",
+    "qa/**/*.ts",
+    "*.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "coverage", "target", "build", ".worktrees", ".swarmforge", "swarmforge"]
+}

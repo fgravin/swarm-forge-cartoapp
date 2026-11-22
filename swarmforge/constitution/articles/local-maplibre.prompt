@@ -1,0 +1,25 @@
+# Local MapLibre Rules
+
+## Boundary
+- Only modules in `src/adapters/` import `maplibre-gl`. The package has named exports only; the map class is `MapLibreMap`.
+- MapLibre needs a browser with WebGL. It cannot run in unit, property, or acceptance tests, and mocking the `maplibre-gl` module proves nothing. The application talks to a port it owns, tests pass a fake port, and the end-to-end QA suite is what verifies the real adapter.
+- The domain and the application define their own geographic types. An adapter translates between them and MapLibre's types; MapLibre types do not cross into `src/application/` or `src/domain/`.
+- The application state is the source of truth. An adapter draws what the application says and reports what the user did. It does not keep state the application does not know about, and it does not answer a domain question itself.
+
+## Coordinates
+- Positions are WGS84 degrees with longitude first: `[lng, lat]`. A bounding box is `[west, south, east, north]`.
+- Convert between screen pixels and positions with `map.unproject` and `map.project`. Do not compute a projection by hand.
+- After the map has been panned around the world, `getCenter()` and `getBounds()` return longitudes outside -180..180. Call `wrap()` on the position before handing it to the application.
+
+## Style, Sources, And Layers
+- Create one map per container, and call `map.remove()` when the adapter is destroyed.
+- Add sources and layers only after the `load` event.
+- `setStyle` replaces everything, including sources and layers added at run time. A feature that changes the background must keep the overlays and the current view: either keep one style and swap the background source and layers under the overlays, or add the overlays again on `style.load`.
+- Keep each overlay (a drawn shape, a selection) in its own GeoJSON source and layers, above the background layers. Change it with `setData`.
+- Every source carries the `attribution` its provider requires, and the attribution control stays visible.
+- A raster source lists its tile URLs in `tiles`, one entry per server; MapLibre has no `{s}` placeholder. Check the axis order of each provider: most use `{z}/{x}/{y}`, ArcGIS tile services use `{z}/{y}/{x}`.
+
+## Interaction
+- A custom gesture, such as drawing, disables the map handlers it competes with (`dragPan`, `boxZoom`, `doubleClickZoom`) while it is active and restores them when it ends or is cancelled.
+- Handle the mouse and touch forms of a gesture, and give it a keyboard way out (Escape cancels).
+- Remove every listener, control, source, and layer the adapter added when the feature is turned off or the adapter is destroyed.

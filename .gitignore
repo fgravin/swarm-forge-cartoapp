@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+target/
+build/
+tmp/
+acceptance/generated/
+playwright-report/
+test-results/
+*.tsbuildinfo
+.DS_Store
+.env
+.claude/
+.swarmforge/
+.worktrees/
+swarmforge/scripts/

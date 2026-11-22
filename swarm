@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MAIN_BRANCH="${SWARMFORGE_SCRIPTS_BRANCH:-main}"
+ARCHIVE_URL="${SWARMFORGE_SCRIPTS_URL:-https://github.com/unclebob/swarm-forge/archive/refs/heads/${MAIN_BRANCH}.tar.gz}"
+TMP_DIR=""
+
+cleanup() {
+  if [[ -n "$TMP_DIR" ]]; then
+    rm -rf "$TMP_DIR"
+  fi
+}
+trap cleanup EXIT
+
+# This pack needs the runtime of the web-stack `main` it was composed with: its
+# swarm_tool installs the TypeScript quality tools and its launcher honors the
+# permission mode named in swarmforge.conf. The upstream runtime has neither,
+# so a missing runtime is not downloaded silently.
+if [[ ! -d "$SCRIPT_DIR/swarmforge/scripts" ]]; then
+  if [[ -z "${SWARMFORGE_SCRIPTS_URL:-}" ]]; then
+    echo "swarm: swarmforge/scripts is missing." >&2
+    echo "Compose the pack again from the web-stack checkouts:" >&2
+    echo "  SWARMFORGE_BASE_DIR=<swarm-forge> SWARMFORGE_PACKS_DIR=<swarm-forge-six-pack> <swarm-forge>/get-swarm-forge six-pack" >&2
+    echo "or set SWARMFORGE_SCRIPTS_URL to an archive of that runtime." >&2
+    exit 1
+  fi
+  TMP_DIR="$(mktemp -d)"
+  mkdir -p "$SCRIPT_DIR/swarmforge"
+  curl -L "$ARCHIVE_URL" | tar -xz --strip-components=1 -C "$TMP_DIR"
+  cp -R "$TMP_DIR/swarmforge/scripts" "$SCRIPT_DIR/swarmforge/scripts"
+fi
+
+exec "$SCRIPT_DIR/swarmforge/scripts/swarmforge.sh" "$@"

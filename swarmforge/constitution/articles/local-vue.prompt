@@ -1,0 +1,23 @@
+# Local Vue Rules
+
+## Components
+- Write components as single-file components with `<script setup lang="ts">`. Do not use the Options API, mixins, or class components.
+- Declare the component interface by type: `defineProps<{ ... }>()`, `defineEmits<{ ... }>()`, `defineModel<T>()`. Reach a template element with `useTemplateRef`.
+- Data goes down through props and up through events. A component does not change a prop.
+- The CRAP, DRY, and mutation tools cannot read `.vue` files, so nothing in one is measured. A component makes no decision: no business condition and no computation in `<script setup>`, and no template expression beyond showing or testing a value the application already computed. Put the decision in a composable or in the domain and test it there.
+- Create outside resources (the map, listeners, timers) in `onMounted` and release each one in `onBeforeUnmount`.
+
+## Composables
+- A composable is a function named `use...` in `src/application/`. It returns refs, computed values, and functions, and it declares its return type.
+- A composable takes the ports it needs as arguments, so a test can pass a fake. It does not create an adapter.
+- Derive with `computed`. Use `watch` only for an effect that leaves the reactive system, such as calling a port. Do not copy state that can be derived.
+- Keep one source of truth for each piece of state. When several components share it, they share one composable instance passed down or provided explicitly, not a hidden module-level variable.
+- Hold an object that comes from outside Vue, such as a map, in a plain variable or a `shallowRef`. Never put it in `ref` or `reactive`: the deep proxy breaks it.
+
+## User Interface
+- Every control works from the keyboard and has an accessible name. Use the native element for the job (`button`, `label`, `fieldset` and `legend`, `output`) and expose state with `aria-pressed`, `aria-checked`, or `aria-expanded`.
+- QA finds elements by role and accessible name. Add `data-testid` only where an element has neither, such as the map container.
+
+## Component Tests
+- Test a composable directly, in Node. That is where the behavior is.
+- Mount a component in a test only to protect wiring that matters, with `@vue/test-utils` and a `// @vitest-environment happy-dom` comment at the top of the test file. Never mount a component that creates the map.

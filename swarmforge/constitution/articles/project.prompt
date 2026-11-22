@@ -1,0 +1,26 @@
+# Project Rules
+
+## Project Shape
+- This project is configured for SwarmForge with six Claude Code agents: specifier, coder, cleaner, architect, hardender, and QA.
+- Project language: TypeScript.
+- Project stack: a browser application built with Vue 3, MapLibre GL JS, Tailwind CSS, and Vite. Unit tests run on Vitest and the end-to-end QA suite on Playwright. The `local-typescript`, `local-vue`, `local-maplibre`, `local-tailwind`, and `local-toolchain` articles hold the rules for each part.
+- `package.json` and `package-lock.json` fix the version of every library, and several are newer than what you remember. Before using an API, read its types or documentation under `node_modules`. Do not write a library call from memory.
+
+## Source Layout
+- `src/domain/`: the rules of the product as plain TypeScript. It imports nothing from Vue, MapLibre, the DOM, or the other source directories.
+- `src/application/`: the state and use cases of the application as Vue composables, and the ports they need from the outside. It imports the domain and Vue's reactivity. It never imports `maplibre-gl`, a component, or an adapter.
+- `src/adapters/`: the only modules that touch MapLibre, the network, or a browser API. Each one implements a port that `src/application/` owns.
+- `src/components/` and `src/App.vue`: Vue single-file components. They show state, forward user input, and connect adapters to the application.
+- `src/domain/` and `src/application/` are the testable modules. `src/adapters/`, the components, and `src/main.ts` are the environmentally unsuitable boundary: keep them thin and free of decisions.
+- The architect may reorganize inside these directories. Moving the line between testable and unsuitable code needs a change to this article first.
+- `features/` holds the Gherkin feature files, `acceptance/` the project-specific acceptance pipeline, `qa/procedures/` the specifier's end-to-end QA procedures, and `qa/e2e/` QA's executable form of them.
+
+## Local Configuration
+- Preserve project-local SwarmForge configuration under `swarmforge/`.
+- Keep swarm state local under `.swarmforge/`, worktrees under `.worktrees/`, and shared scripts under `swarmforge/scripts/`.
+
+## Handoffs
+- Prefer terse, explicit handoffs that report state and request role-appropriate review. Do not include verifications or sender process narrative.
+
+## Ownership
+- Do not change another role's prompt or workflow ownership without explicit user direction.

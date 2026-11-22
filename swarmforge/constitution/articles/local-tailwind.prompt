@@ -1,0 +1,15 @@
+# Local Tailwind Rules
+
+## Setup
+- Tailwind CSS v4 is loaded by the `@tailwindcss/vite` plugin and by `@import 'tailwindcss'` in `src/style.css`. Its configuration is CSS: design tokens go in an `@theme` block in `src/style.css`. Do not add a `tailwind.config.js` or a PostCSS configuration.
+
+## Styling
+- Style elements with utility classes in the template. Do not write `<style>` blocks, inline `style` attributes, or new CSS files. The exception is DOM that a library renders and utilities cannot reach, such as MapLibre controls: style that in `src/style.css`.
+- Tailwind finds class names by reading the source as text. Write every class name in full. Never build one from pieces (`'bg-' + color`); choose between complete names with a `:class` binding on a value the application computed.
+- Reuse styling by extracting a component, not with `@apply`.
+- Use the theme scale. Write an arbitrary value (`w-[317px]`) only for a size that comes from outside the design.
+- Show interaction state with variants: `hover:`, `focus-visible:`, `disabled:`, `aria-pressed:`. Every interactive element has a visible focus style.
+
+## Layout
+- The map container needs a definite height or MapLibre draws nothing. Size it through the layout (`h-full` inside a sized parent, or `flex-1 min-h-0` in a flex column), not with a fixed pixel height.
+- Place panels over the map with `absolute` inside the `relative` map section. Do not cover the attribution or the map controls.

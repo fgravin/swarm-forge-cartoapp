@@ -1,0 +1,16 @@
+# Local TypeScript Rules
+
+## Types
+- The compiler options in `tsconfig.json` and the rules in `eslint.config.js` are part of the specification. Fix the code. Do not relax an option, disable a rule, or add `@ts-ignore`, `@ts-expect-error`, or an `eslint-disable` comment to get past one.
+- Do not use `any`. Type what enters the program from outside (JSON, events, storage, the URL) as `unknown` and narrow it once, in the module where it enters.
+- Do not use a type assertion (`as`, non-null `!`) to quiet the compiler. `as const` and `satisfies` are fine.
+- `noUncheckedIndexedAccess` is on: reading an array element or a record entry may give `undefined`. Handle that case; do not assert it away.
+- Model state that has distinct cases as a discriminated union and switch over it exhaustively, with a `never` check in the default branch. Do not spread the cases over optional fields and boolean flags.
+- Make data immutable by default: `readonly` properties, `readonly T[]`, `as const` tables. Return a new value instead of changing an argument.
+- Give domain values a named type. A bounding box is a `Bbox`, not a bare `number[]`.
+
+## Modules
+- Export named functions, constants, and types. Only `.vue` files and configuration files have a default export.
+- Import types with `import type`. Import project modules by relative path, without a file extension and without a path alias.
+- State the parameter and return types of every exported function.
+- One module, one job. Keep a function small enough to name precisely.

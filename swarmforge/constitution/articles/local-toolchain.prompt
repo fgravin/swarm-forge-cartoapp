@@ -1,0 +1,49 @@
+# Local Toolchain Rules
+
+## Workspace
+- Each worktree has its own `node_modules`. Run `npm ci` when it is missing and after every merge that changes `package-lock.json`. Do not link or copy `node_modules` between worktrees.
+- Use the Node version on PATH. `engines` in `package.json` says which versions the project supports; do not install or switch Node versions.
+- Add a dependency only when the task needs one. Install it with `npm install` and commit `package.json` and `package-lock.json` together.
+- Do not leave a server running. Start one only for a check that needs it, on a port of your own (`npm run dev -- --port <port> --strictPort`), and stop it before handoff.
+- Generated output stays out of git: `dist/`, `coverage/`, `target/`, `build/`, `tmp/`, `acceptance/generated/`, `playwright-report/`, and `test-results/`.
+- `.metrics/` is committed. It holds the CRAP and DRY snapshots and the mutation manifests that differential mutation reads.
+
+## Commands
+- `npm run typecheck`: `vue-tsc` over the source, the tests, the acceptance code, the QA scripts, and the configuration files.
+- `npm run lint`: ESLint, with warnings as failures. It also checks the dependency direction of the source layout.
+- `npm test`: the unit tests, `src/**/*.test.ts`, on Vitest in Node.
+- `npm run coverage`: the unit tests with coverage of the testable modules, written to `coverage/lcov.info`. `crapper` and `mutator` call it themselves.
+- `npm run test:property`: the property tests, `src/**/*.property.test.ts`, written with `fast-check`.
+- `npm run acceptance`: the normal acceptance run. It parses every `features/*.feature`, generates the entry points, and runs them. The coder provides it.
+- `npm run e2e`: the end-to-end QA suite on Playwright. QA owns it.
+- `npm run build`: type-check, then the production build.
+- Where the constitution or a role prompt says to run the unit tests, run `npm run typecheck`, `npm run lint`, and `npm test`. All three must pass.
+- A change to a `.vue` file, an adapter, or the build configuration must also pass `npm run build`.
+
+## Configuration Files
+- `mutator` runs the unit tests from copies of the tree under `target/mutation-workers/`. Keep every path in `vite.config.ts` and the `vitest*.config.ts` files relative to the working directory. Do not derive a path from `import.meta.url` or `__dirname`.
+- Keep `.worktrees/` and `target/` excluded from every test, lint, and type-check glob.
+
+## Quality Tools
+- Run the constitution tools on the testable modules only:
+  - `crapper src/domain src/application`
+  - `dryer src/domain src/application`
+  - `mutator --scan src/domain src/application`
+  - `mutator src/<directory>/<module>.ts`, one module at a time
+- `crapper` writes `.metrics/crap.edn`, `dryer` writes `.metrics/dry.edn`, and `mutator` writes `.metrics/mutate/`. Commit what they write. Do not edit those files.
+- A mutant is killed only when `npm test` fails. `mutator` finds the tests of a module by following relative imports, so keep the imports between a test and its module relative.
+
+## Acceptance Pipeline
+- Feature files are `features/<feature>.feature`. Parser output goes to `build/acceptance/<feature>.json`, and generated entry points to `acceptance/generated/`.
+- Write the entry point generator, the runtime, the step handlers, and the `gherkin-mutator` runner adapter in TypeScript under `acceptance/`. Run scripts with `tsx`; generated entry points are Vitest tests with their own configuration file.
+- Acceptance tests run in Node. Step handlers drive the composables of `src/application/` and give them fake ports. They do not open a browser, create the MapLibre adapter, or reach the network.
+- A behavior that only exists in an adapter or a component cannot be reached by a step handler. Move the decision into the application or the domain first; what remains in the adapter is verified by the QA suite.
+- The APS specifications are in the tool checkout, `.swarmforge/tools/Acceptance-Pipeline-Specification/` in the main project directory, once `swarm_tool.sh ensure gherkin-parser` has run.
+
+## End-To-End QA Suite
+- The specifier writes one procedure file per feature, `qa/procedures/<feature>.md`: numbered procedures named like the Gherkin scenarios, each a list of what a user does and what the user then sees in the browser.
+- QA writes one Playwright file per procedure file, `qa/e2e/<feature>.spec.ts`, with one test per procedure under the same name.
+- The suite runs against the production build, which `playwright.config.ts` builds and serves itself. It runs headless; `npm run e2e:headed` shows the browser.
+- A check never depends on a tile server or any other outside service. Answer those requests inside the test (`serveTilesLocally` in `qa/e2e/tiles.ts`) and assert on the URLs that were requested.
+- Observe the application as a user does: by role, accessible name, and visible text. Do not read application state through `page.evaluate`, a global variable, or any hook added for the tests.
+- The map itself is pixels in a WebGL canvas. Verify what it shows through the tiles it requests, its attribution, and the DOM the application renders around it. Act on it with the mouse, at positions inside the map container.
