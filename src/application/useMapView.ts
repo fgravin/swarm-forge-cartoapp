@@ -1,36 +1,32 @@
 import { computed, shallowRef, type ComputedRef, type ShallowRef } from 'vue'
 
 import { describeMapView, INITIAL_MAP_VIEW, type MapView } from '../domain/mapView'
-import type { MapPort } from './mapPort'
+import type { ViewSource } from './mapPort'
 
 export interface MapViewState {
   readonly view: Readonly<ShallowRef<MapView>>
   readonly description: ComputedRef<string>
-  /** Follows `port` until `disconnect`, or until another port is connected. */
-  connect(port: MapPort): void
-  /** Stops following the connected map and releases it. */
+  /** Follows `source` until `disconnect`, or until another source is connected. */
+  connect(source: ViewSource): void
+  /** Stops following the connected source. */
   disconnect(): void
 }
 
 export function useMapView(): MapViewState {
   const view = shallowRef<MapView>(INITIAL_MAP_VIEW)
   const description = computed(() => describeMapView(view.value))
-  let release: (() => void) | undefined
+  let stopFollowing: (() => void) | undefined
 
   function disconnect(): void {
-    release?.()
-    release = undefined
+    stopFollowing?.()
+    stopFollowing = undefined
   }
 
-  function connect(port: MapPort): void {
+  function connect(source: ViewSource): void {
     disconnect()
-    const stopListening = port.onViewChange((next) => {
+    stopFollowing = source.onViewChange((next) => {
       view.value = next
     })
-    release = () => {
-      stopListening()
-      port.destroy()
-    }
   }
 
   return { view, description, connect, disconnect }

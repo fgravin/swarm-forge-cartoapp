@@ -6,6 +6,22 @@ import tseslint from 'typescript-eslint'
 // Dependency direction: components -> application -> domain, adapters -> application/domain.
 const restrict = (patterns) => ['error', { patterns }]
 
+// Browser APIs the testable modules reach only through a port an adapter implements.
+const BROWSER_APIS = [
+  'window',
+  'document',
+  'navigator',
+  'location',
+  'history',
+  'localStorage',
+  'sessionStorage',
+  'indexedDB',
+  'fetch',
+  'XMLHttpRequest',
+  'WebSocket',
+  'requestAnimationFrame',
+].map((name) => ({ name, message: 'Reach the browser through a port an adapter implements.' }))
+
 export default tseslint.config(
   {
     ignores: [
@@ -54,6 +70,20 @@ export default tseslint.config(
       'no-restricted-imports': restrict([
         { group: ['maplibre-gl', 'maplibre-gl/*'], message: 'Reach the map through a port the application owns.' },
         { group: ['**/adapters/**', '**/components/**', '*.vue'], message: 'The application depends on the domain only.' },
+      ]),
+    },
+  },
+  {
+    files: ['src/domain/**', 'src/application/**'],
+    rules: {
+      'no-restricted-globals': ['error', ...BROWSER_APIS],
+    },
+  },
+  {
+    files: ['src/components/**', 'src/*.vue', 'src/main.ts'],
+    rules: {
+      'no-restricted-imports': restrict([
+        { group: ['maplibre-gl', 'maplibre-gl/*'], message: 'Only the adapters touch MapLibre.' },
       ]),
     },
   },

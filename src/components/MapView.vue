@@ -2,26 +2,18 @@
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue'
 
 import { createMaplibreMap } from '../adapters/maplibreMap'
-import { useBasemaps } from '../application/useBasemaps'
-import { useMapView } from '../application/useMapView'
+import { useMapScreen } from '../application/useMapScreen'
 import BasemapPanel from './BasemapPanel.vue'
 
 const container = useTemplateRef<HTMLDivElement>('container')
-const mapView = useMapView()
-const basemaps = useBasemaps()
-const { description } = mapView
-const { groups, select } = basemaps
+const screen = useMapScreen()
+const { description, groups, select } = screen
 
 onMounted(() => {
-  if (container.value) {
-    const map = createMaplibreMap(container.value, mapView.view.value)
-    mapView.connect(map)
-    basemaps.connect(map)
-  }
+  if (container.value) screen.connect(createMaplibreMap(container.value, screen.view.value))
 })
 onBeforeUnmount(() => {
-  basemaps.disconnect()
-  mapView.disconnect()
+  screen.disconnect()
 })
 </script>
 

@@ -5,9 +5,8 @@ import { parseNumber } from './values'
 import type { World } from './world'
 
 export const APPLICATION_STEPS: readonly StepHandler<World>[] = [
-  step(/^the application has started$/, ({ mapView, basemaps, map }) => {
-    mapView.connect(map.port)
-    basemaps.connect(map.port)
+  step(/^the application has started$/, ({ screen, map }) => {
+    screen.connect(map.port)
   }),
 
   step(/^the map has been moved to latitude (.+), longitude (.+), zoom (.+)$/, ({ map }, [lat = '', lng = '', zoom = '']) => {
@@ -17,7 +16,7 @@ export const APPLICATION_STEPS: readonly StepHandler<World>[] = [
     })
   }),
 
-  step(/^the view indicator reads (.+)$/, ({ mapView }, [description]) => {
-    expect(mapView.description.value).toBe(description)
+  step(/^the view indicator reads (.+)$/, ({ screen }, [description]) => {
+    expect(screen.description.value).toBe(description)
   }),
 ]
