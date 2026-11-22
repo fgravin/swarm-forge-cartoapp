@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { selectExecutions, type EntryPoint } from './entryPoint'
+import { irToLoad, MUTATED_IR_VARIABLE, selectExecutions, type EntryPoint } from './entryPoint'
 import type { Feature } from './ir'
 import { expandFeature } from './runtime'
 
@@ -46,6 +46,19 @@ describe('selectExecutions', () => {
   ])('refuses %s, so a stale entry point fails', (_case, feature: Feature) => {
     expect(() => selectExecutions(ENTRY, feature)).toThrow(
       'Stale entry point for build/acceptance/base-map.json: regenerate it with `npm run acceptance`',
+    )
+  })
+})
+
+describe('irToLoad', () => {
+  it('loads the IR the entry point was generated from', () => {
+    expect(irToLoad(ENTRY, {})).toBe('build/acceptance/base-map.json')
+  })
+
+  it('loads the mutated IR a Gherkin mutation run names instead', () => {
+    expect(MUTATED_IR_VARIABLE).toBe('ACCEPTANCE_MUTATED_IR')
+    expect(irToLoad(ENTRY, { ACCEPTANCE_MUTATED_IR: 'build/acceptance-mutation/base-map/mutations/m3/feature.json' })).toBe(
+      'build/acceptance-mutation/base-map/mutations/m3/feature.json',
     )
   })
 })

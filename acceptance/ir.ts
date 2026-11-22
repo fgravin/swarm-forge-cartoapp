@@ -2,6 +2,7 @@
  * The feature JSON IR that `gherkin-parser` writes, read once and narrowed
  * here. See `parser-spec.md` in the Acceptance Pipeline Specification.
  */
+import { isObject, type JsonObject } from './json'
 
 export interface Step {
   readonly keyword: string
@@ -23,14 +24,8 @@ export interface Feature {
   readonly scenarios: readonly Scenario[]
 }
 
-type JsonObject = Readonly<Record<string, unknown>>
-
 function malformed(message: string): Error {
   return new Error(`Malformed feature IR: ${message}`)
-}
-
-function isObject(value: unknown): value is JsonObject {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function readObject(value: unknown, path: string): JsonObject {
