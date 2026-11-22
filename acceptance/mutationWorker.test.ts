@@ -9,12 +9,14 @@ const JOB: MutationJob = {
   workDir: 'build/acceptance-mutation/base-map/mutations/m3',
 }
 
-const LINE = JSON.stringify({
+const REQUEST = {
   id: 'm3',
   feature_json: 'build/acceptance-mutation/base-map/mutations/m3/feature.json',
   generated_dir: 'acceptance/generated',
   work_dir: 'build/acceptance-mutation/base-map/mutations/m3',
-})
+} as const
+
+const LINE = JSON.stringify(REQUEST)
 
 describe('parseJob', () => {
   it('reads a job request line', () => {
@@ -22,7 +24,7 @@ describe('parseJob', () => {
   })
 
   it('ignores the fields it does not use', () => {
-    expect(parseJob(JSON.stringify({ ...JSON.parse(LINE), timeout: '30s' }))).toEqual(JOB)
+    expect(parseJob(JSON.stringify({ ...REQUEST, timeout: '30s' }))).toEqual(JOB)
   })
 
   it.each([['[]'], ['null'], ['"m3"']])('refuses %s, which is not a job', (line) => {
@@ -30,7 +32,7 @@ describe('parseJob', () => {
   })
 
   it.each([['id'], ['feature_json'], ['generated_dir'], ['work_dir']])('refuses a job without a %s string', (key) => {
-    const job = { ...JSON.parse(LINE), [key]: 3 }
+    const job = { ...REQUEST, [key]: 3 }
 
     expect(() => parseJob(JSON.stringify(job))).toThrow(`Malformed mutation job: ${key} must be a string`)
   })

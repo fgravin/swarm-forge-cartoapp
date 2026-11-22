@@ -22,7 +22,8 @@ const JOB_TIMEOUT_MS = 120_000
 
 function readReport(path: string): unknown {
   try {
-    return JSON.parse(readFileSync(path, 'utf8'))
+    const report: unknown = JSON.parse(readFileSync(path, 'utf8'))
+    return report
   } catch {
     return undefined
   }
