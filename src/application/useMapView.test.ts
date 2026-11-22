@@ -14,6 +14,7 @@ function fakeMap() {
         listeners.delete(listener)
       }
     },
+    showBasemap() {},
     destroy() {
       destroyed = true
     },
@@ -83,6 +84,7 @@ describe('useMapView', () => {
     let destroyCount = 0
     const port: MapPort = {
       onViewChange: () => () => {},
+      showBasemap: () => {},
       destroy: () => {
         destroyCount += 1
       },
