@@ -3,13 +3,13 @@
 import { readFileSync } from 'node:fs'
 import { describe, it } from 'vitest'
 
-import { selectExecutions, type EntryPoint } from './entryPoint'
+import { irToLoad, selectExecutions, type EntryPoint } from './entryPoint'
 import { parseFeature } from './ir'
 import { runExecution } from './runtime'
 import { createWorld, STEP_HANDLERS } from './steps'
 
 export function describeFeature(entry: EntryPoint): void {
-  const feature = parseFeature(JSON.parse(readFileSync(entry.irPath, 'utf8')))
+  const feature = parseFeature(JSON.parse(readFileSync(irToLoad(entry, process.env), 'utf8')))
   const executions = selectExecutions(entry, feature)
   describe(entry.feature, () => {
     for (const execution of executions) {

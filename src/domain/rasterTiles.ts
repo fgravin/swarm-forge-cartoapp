@@ -14,9 +14,9 @@ const SERVER_LIST = /\{([^{}]*,[^{}]*)\}/
 
 /** `https://{a,b}.example.com/...` -> `https://a.example.com/...`, `https://b.example.com/...`. */
 export function tileServerUrls(tileUrl: string): readonly string[] {
-  const match = SERVER_LIST.exec(tileUrl)
-  if (!match?.[1]) return [tileUrl]
-  return match[1].split(',').map((server) => tileUrl.replace(match[0], server))
+  const servers = SERVER_LIST.exec(tileUrl)?.[1]
+  if (servers === undefined) return [tileUrl]
+  return servers.split(',').map((server) => tileUrl.replace(SERVER_LIST, server))
 }
 
 export function rasterTiles(basemap: Basemap): RasterTiles {

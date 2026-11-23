@@ -70,12 +70,17 @@ function metadataContent(featurePath: string, irPath: string, generated: readonl
   return `${JSON.stringify(metadata, null, 2)}\n`
 }
 
+/** The entry point generated into `outDir` for the feature `features/<stem>.feature`. */
+export function entryPointPath(outDir: string, stem: string): string {
+  return posix.join(outDir, `${stem}.acceptance.test.ts`)
+}
+
 /** The files to write for the feature parsed into `irPath` (`build/acceptance/<stem>.json`). */
 export function planEntryPoints(feature: Feature, irPath: string, outDir: string): EntryPointPlan {
   const stem = posix.basename(irPath, '.json')
   const featurePath = `features/${stem}.feature`
   const entryPoint = {
-    path: posix.join(outDir, `${stem}.acceptance.test.ts`),
+    path: entryPointPath(outDir, stem),
     content: entryPointContent(feature, irPath, outDir),
   }
   const metadata = {

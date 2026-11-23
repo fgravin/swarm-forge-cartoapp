@@ -8,6 +8,14 @@ export interface EntryPoint {
   readonly scenarios: readonly string[]
 }
 
+/** Set by a Gherkin mutation run to the mutated IR that entry points load in place of their own. */
+export const MUTATED_IR_VARIABLE = 'ACCEPTANCE_MUTATED_IR'
+
+/** The IR an entry point loads: the mutated one when a mutation run names it, else the one it was generated from. */
+export function irToLoad(entry: EntryPoint, env: Readonly<Record<string, string | undefined>>): string {
+  return env[MUTATED_IR_VARIABLE] ?? entry.irPath
+}
+
 function sameStructure(entry: EntryPoint, feature: Feature): boolean {
   const scenarios = feature.scenarios.map((scenario) => scenario.name)
   return (
