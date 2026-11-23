@@ -9,7 +9,7 @@ import {
 } from 'maplibre-gl'
 
 import type { MapPort } from '../application/mapPort'
-import type { Bbox } from '../domain/bbox'
+import { bboxRing, type Bbox } from '../domain/bbox'
 import type { DrawEvent, MapPointer } from '../domain/bboxCapture'
 import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
@@ -28,21 +28,10 @@ type GeoJsonData = Parameters<GeoJSONSource['setData']>[0]
 function rectangleData(rectangles: readonly Bbox[]): GeoJsonData {
   return {
     type: 'FeatureCollection',
-    features: rectangles.map(([west, south, east, north]) => ({
+    features: rectangles.map((bbox) => ({
       type: 'Feature',
       properties: {},
-      geometry: {
-        type: 'Polygon',
-        coordinates: [
-          [
-            [west, south],
-            [east, south],
-            [east, north],
-            [west, north],
-            [west, south],
-          ],
-        ],
-      },
+      geometry: { type: 'Polygon', coordinates: [bboxRing(bbox).map(({ lng, lat }) => [lng, lat])] },
     })),
   }
 }

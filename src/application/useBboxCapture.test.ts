@@ -95,10 +95,10 @@ describe('useBboxCapture', () => {
     capture.connect(map.surface)
     capture.toggleDrawing()
 
-    map.user(...dragEvents({ point: { x: 0, y: 0 }, position: { lng: 5.71234, lat: 45.56789 } }, {
-      point: { x: 300, y: 400 },
-      position: { lng: 6.01234, lat: 45.12345 },
-    }))
+    const northWest: MapPointer = { point: { x: 0, y: 0 }, position: { lng: 5.71234, lat: 45.56789 } }
+    const southEast: MapPointer = { point: { x: 300, y: 400 }, position: { lng: 6.01234, lat: 45.12345 } }
+
+    map.user(...dragEvents(northWest, southEast))
 
     expect(capture.bboxText.value).toBe('5.71234, 45.12345, 6.01234, 45.56789')
     expect(capture.canClear.value).toBe(true)

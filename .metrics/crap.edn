@@ -1,9 +1,21 @@
 {:entries [
+  {:name "applyWhileOn", :namespace "domain.bboxCapture", :complexity 8, :coverage 88.8889, :crap 8.0878}
+  {:name "useBboxCapture", :namespace "application.useBboxCapture", :complexity 6, :coverage 100.0, :crap 6.0}
   {:name "useBasemaps", :namespace "application.useBasemaps", :complexity 3, :coverage 100.0, :crap 3.0}
+  {:name "shownRectangles", :namespace "domain.bboxCapture", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "tileServerUrls", :namespace "domain.rasterTiles", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "useMapScreen", :namespace "application.useMapScreen", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "useMapView", :namespace "application.useMapView", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "describeBbox", :namespace "domain.bbox", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "applyDrawEvent", :namespace "domain.bboxCapture", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "clearBbox", :namespace "domain.bboxCapture", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "largeEnough", :namespace "domain.bboxCapture", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "release", :namespace "domain.bboxCapture", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "toggleDrawing", :namespace "domain.bboxCapture", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "formatDegrees", :namespace "domain.mapView", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "bboxBetween", :namespace "domain.bbox", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "bboxRing", :namespace "domain.bbox", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "isDrawingModeOn", :namespace "domain.bboxCapture", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "describeMapView", :namespace "domain.mapView", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "rasterTiles", :namespace "domain.rasterTiles", :complexity 1, :coverage 100.0, :crap 1.0}
 ]}

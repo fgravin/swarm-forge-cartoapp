@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { bboxBetween, describeBbox, type Bbox } from './bbox'
+import { bboxBetween, bboxRing, describeBbox, type Bbox } from './bbox'
 
 describe('bboxBetween', () => {
   const southWest = { lng: 5.7, lat: 45.1 }
@@ -20,6 +20,18 @@ describe('bboxBetween', () => {
 
   it('works across the equator and the Greenwich meridian', () => {
     expect(bboxBetween({ lng: 0.5, lat: 1 }, { lng: -0.5, lat: -1 })).toEqual([-0.5, -1, 0.5, 1])
+  })
+})
+
+describe('bboxRing', () => {
+  it('goes round the corners from the south-west one, counter-clockwise, and closes on it', () => {
+    expect(bboxRing([5.7, 45.1, 6, 45.5])).toEqual([
+      { lng: 5.7, lat: 45.1 },
+      { lng: 6, lat: 45.1 },
+      { lng: 6, lat: 45.5 },
+      { lng: 5.7, lat: 45.5 },
+      { lng: 5.7, lat: 45.1 },
+    ])
   })
 })
 
