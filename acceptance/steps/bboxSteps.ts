@@ -24,6 +24,13 @@ function dragBetween(world: World, from: LngLat, to: LngLat): void {
   drag(world, world.map.pointerAt(from), world.map.pointerAt(to))
 }
 
+/** Drags from `PIXEL_DRAG_START` across `width` by `height` pixels. */
+function dragAcross(world: World, width: number, height: number): void {
+  const from = world.map.pointerAt(PIXEL_DRAG_START)
+  const { x, y } = from.point
+  drag(world, from, world.map.pointerAtPoint({ x: x + width, y: y + height }))
+}
+
 function turnDrawingModeOn({ screen }: World): void {
   screen.bboxCapture.toggleDrawing()
   expect(screen.bboxCapture.drawingMode.value).toBe(true)
@@ -64,13 +71,22 @@ export const BBOX_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the user drags on the map across (\S+) by (\S+) pixels$/, (world, [width = '', height = '']) => {
-    const from = world.map.pointerAt(PIXEL_DRAG_START)
-    const { x, y } = from.point
-    const to = world.map.pointerAtPoint({
-      x: x + parseCount(width, 'width'),
-      y: y + parseCount(height, 'height'),
-    })
-    drag(world, from, to)
+    dragAcross(world, parseCount(width, 'width'), parseCount(height, 'height'))
+  }),
+
+  step(
+    /^the user drags on the map across (\S+) by (\S+) pixels less one pixel of (width|height)$/,
+    (world, [width = '', height = '', shortened = '']) => {
+      const lessWidth = shortened === 'width' ? 1 : 0
+      const lessHeight = shortened === 'height' ? 1 : 0
+      dragAcross(world, parseCount(width, 'width') - lessWidth, parseCount(height, 'height') - lessHeight)
+    },
+  ),
+
+  step(/^the user clicks on the map$/, ({ map }) => {
+    const pointer = map.pointerAt(PIXEL_DRAG_START)
+    map.draw({ type: 'press', pointer })
+    map.draw({ type: 'release', pointer })
   }),
 
   step(/^the user starts dragging on the map at (.+)$/, ({ map }, [corner = '']) => {
