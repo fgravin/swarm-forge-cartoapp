@@ -9,7 +9,9 @@ import type { World } from './world'
 // Corners away from every bbox of the examples, for the steps that do not give theirs.
 const SYDNEY = { from: { lng: 151.2, lat: -33.9 }, to: { lng: 151.3, lat: -33.8 } }
 const TOKYO = { from: { lng: 139.6, lat: 35.6 }, to: { lng: 139.8, lat: 35.7 } }
+// Where a drag given only by its size in pixels starts.
 const PIXEL_DRAG_START: LngLat = { lng: 10, lat: 50 }
+// Where the user moves and zooms the map to, away from the view it starts at.
 const BUENOS_AIRES = { center: { lng: -58.3816, lat: -34.6037 }, zoom: 11 }
 
 function drag({ map }: World, from: MapPointer, to: MapPointer): void {

@@ -62,6 +62,10 @@ function selectedIds(screen: MapScreenState): readonly BasemapId[] {
 }
 
 const BUENOS_AIRES: MapView = { center: { lng: -58.3816, lat: -34.6037 }, zoom: 11 }
+// A bbox over Paris, dragged from its north-east corner to its south-west corner.
+const PARIS_NORTH_EAST: LngLat = { lng: 2.4, lat: 48.9 }
+const PARIS_SOUTH_WEST: LngLat = { lng: 2.3, lat: 48.8 }
+const PARIS_BBOX: Bbox = [2.3, 48.8, 2.4, 48.9]
 
 describe('useMapScreen', () => {
   it('starts at the initial view, with Positron selected', () => {
@@ -102,12 +106,12 @@ describe('useMapScreen', () => {
     screen.connect(map.port)
 
     screen.toggleDrawing()
-    map.drag({ lng: 2.4, lat: 48.9 }, { lng: 2.3, lat: 48.8 })
+    map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
     expect(screen.bboxText.value).toBe('2.30000, 48.80000, 2.40000, 48.90000')
     expect(screen.drawingMode.value).toBe(false)
     expect(screen.canClear.value).toBe(true)
-    expect(map.rectangles()).toEqual([[2.3, 48.8, 2.4, 48.9]])
+    expect(map.rectangles()).toEqual([PARIS_BBOX])
   })
 
   it('keeps the bbox when the user moves the map or chooses another basemap', () => {
@@ -115,13 +119,13 @@ describe('useMapScreen', () => {
     const screen = useMapScreen()
     screen.connect(map.port)
     screen.toggleDrawing()
-    map.drag({ lng: 2.4, lat: 48.9 }, { lng: 2.3, lat: 48.8 })
+    map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
     map.moveTo(BUENOS_AIRES)
     screen.select('world-imagery')
 
     expect(screen.bboxText.value).toBe('2.30000, 48.80000, 2.40000, 48.90000')
-    expect(map.rectangles()).toEqual([[2.3, 48.8, 2.4, 48.9]])
+    expect(map.rectangles()).toEqual([PARIS_BBOX])
   })
 
   it('clears the bbox', () => {
@@ -129,7 +133,7 @@ describe('useMapScreen', () => {
     const screen = useMapScreen()
     screen.connect(map.port)
     screen.toggleDrawing()
-    map.drag({ lng: 2.4, lat: 48.9 }, { lng: 2.3, lat: 48.8 })
+    map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
     screen.clearBbox()
 
@@ -146,7 +150,7 @@ describe('useMapScreen', () => {
     screen.select('dark-matter')
     map.moveTo(BUENOS_AIRES)
     screen.toggleDrawing()
-    map.drag({ lng: 2.4, lat: 48.9 }, { lng: 2.3, lat: 48.8 })
+    map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
     expect(map.destroyCount()).toBe(1)
     expect(map.drawn).toEqual([rasterTiles(BASEMAPS.positron)])
