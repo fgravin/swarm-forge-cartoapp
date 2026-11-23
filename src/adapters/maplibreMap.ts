@@ -2,11 +2,15 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import {
   MapLibreMap,
   NavigationControl,
+  setWorkerUrl,
   type GeoJSONSource,
   type MapTouchEvent,
   type StyleSpecification,
   type Subscription,
 } from 'maplibre-gl'
+// MapLibre looks for its worker beside its own module, which the build bundles
+// away: without this URL the worker fails to load and no GeoJSON overlay is drawn.
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
 import type { MapPort } from '../application/mapPort'
 import { bboxRing, type Bbox } from '../domain/bbox'
@@ -48,6 +52,7 @@ function pointerOfTouch(event: MapTouchEvent): MapPointer {
  * unit tests. It stays a thin translation between MapLibre and `MapPort`.
  */
 export function createMaplibreMap(container: HTMLElement, initialView: MapView): MapPort {
+  setWorkerUrl(maplibreWorkerUrl)
   const map = new MapLibreMap({
     container,
     style: EMPTY_STYLE,

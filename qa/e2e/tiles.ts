@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 
-// A 1x1 transparent PNG.
+// A 1x1 PNG of one colour: every tile is featureless, so the map shows only
+// what the application draws over its basemap.
 const BLANK_TILE = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   'base64',
