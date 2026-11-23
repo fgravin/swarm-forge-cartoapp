@@ -19,8 +19,9 @@ export interface ViewSource {
 export interface DrawingSurface {
   /**
    * Turns the drawing mode of the map on or off. While it is on, the map shows a
-   * crosshair cursor, a drag on it does not move it, and each press, move, and
-   * release of the pointer on it, and Escape, are reported to `onDraw` listeners.
+   * crosshair cursor, a drag on it does not move it, and each press of the
+   * pointer on it, each move and release of the pointer, even off the map, and
+   * Escape, are reported to `onDraw` listeners.
    */
   setDrawingMode(on: boolean): void
   /** Calls `listener` with each draw event. Returns the function that stops it. */

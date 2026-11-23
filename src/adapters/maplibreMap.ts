@@ -3,7 +3,6 @@ import {
   MapLibreMap,
   NavigationControl,
   type GeoJSONSource,
-  type MapMouseEvent,
   type MapTouchEvent,
   type StyleSpecification,
   type Subscription,
@@ -48,7 +47,7 @@ function rectangleData(rectangles: readonly Bbox[]): GeoJsonData {
   }
 }
 
-function pointerOf(event: MapMouseEvent | MapTouchEvent): MapPointer {
+function pointerOfTouch(event: MapTouchEvent): MapPointer {
   const position = event.lngLat.wrap()
   return { point: { x: event.point.x, y: event.point.y }, position: { lng: position.lng, lat: position.lat } }
 }
@@ -109,8 +108,24 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
     drawListeners.forEach((listener) => listener(event))
   }
 
+  /** Where the mouse is on the map, also when it is outside the map or over a panel above it. */
+  function pointerOfMouse(event: MouseEvent): MapPointer {
+    const box = map.getCanvasContainer().getBoundingClientRect()
+    const point = { x: event.clientX - box.left, y: event.clientY - box.top }
+    const position = map.unproject([point.x, point.y]).wrap()
+    return { point, position: { lng: position.lng, lat: position.lat } }
+  }
+
   function reportEscape(event: KeyboardEvent): void {
     if (event.key === 'Escape') report({ type: 'cancel' })
+  }
+
+  function reportMouseMove(event: MouseEvent): void {
+    report({ type: 'move', pointer: pointerOfMouse(event) })
+  }
+
+  function reportMouseRelease(event: MouseEvent): void {
+    if (event.button === 0) report({ type: 'release', pointer: pointerOfMouse(event) })
   }
 
   function startDrawing(): void {
@@ -118,20 +133,24 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
     container.classList.add(DRAWING_CLASS)
     drawingSubscriptions = [
       map.on('mousedown', (event) => {
-        if (event.originalEvent.button === 0) report({ type: 'press', pointer: pointerOf(event) })
+        if (event.originalEvent.button === 0) report({ type: 'press', pointer: pointerOfMouse(event.originalEvent) })
       }),
-      map.on('mousemove', (event) => report({ type: 'move', pointer: pointerOf(event) })),
-      map.on('mouseup', (event) => report({ type: 'release', pointer: pointerOf(event) })),
-      map.on('touchstart', (event) => report({ type: 'press', pointer: pointerOf(event) })),
-      map.on('touchmove', (event) => report({ type: 'move', pointer: pointerOf(event) })),
-      map.on('touchend', (event) => report({ type: 'release', pointer: pointerOf(event) })),
+      map.on('touchstart', (event) => report({ type: 'press', pointer: pointerOfTouch(event) })),
+      map.on('touchmove', (event) => report({ type: 'move', pointer: pointerOfTouch(event) })),
+      map.on('touchend', (event) => report({ type: 'release', pointer: pointerOfTouch(event) })),
     ]
+    // A drag that starts on the map may end outside it, or over a panel above it,
+    // where the map hears nothing: follow the mouse over the whole window.
+    window.addEventListener('mousemove', reportMouseMove)
+    window.addEventListener('mouseup', reportMouseRelease)
     window.addEventListener('keydown', reportEscape)
   }
 
   function stopDrawing(): void {
     drawingSubscriptions.forEach((subscription) => subscription.unsubscribe())
     drawingSubscriptions = []
+    window.removeEventListener('mousemove', reportMouseMove)
+    window.removeEventListener('mouseup', reportMouseRelease)
     window.removeEventListener('keydown', reportEscape)
     container.classList.remove(DRAWING_CLASS)
     competingHandlers.forEach((handler) => handler.enable())
