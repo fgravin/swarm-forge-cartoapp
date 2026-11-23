@@ -1,3 +1,5 @@
+import type { Bbox } from '../domain/bbox'
+import type { DrawEvent } from '../domain/bboxCapture'
 import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
 
@@ -13,11 +15,25 @@ export interface ViewSource {
   onViewChange(listener: (view: MapView) => void): () => void
 }
 
+/** What the application needs from a map to capture a bbox on it. */
+export interface DrawingSurface {
+  /**
+   * Turns the drawing mode of the map on or off. While it is on, the map shows a
+   * crosshair cursor, a drag on it does not move it, and each press, move, and
+   * release of the pointer on it, and Escape, are reported to `onDraw` listeners.
+   */
+  setDrawingMode(on: boolean): void
+  /** Calls `listener` with each draw event. Returns the function that stops it. */
+  onDraw(listener: (event: DrawEvent) => void): () => void
+  /** Draws `rectangles` over the basemap, in place of those drawn before. */
+  showRectangles(rectangles: readonly Bbox[]): void
+}
+
 /**
  * What the application needs from a map. The MapLibre adapter implements it;
  * unit and acceptance tests replace it with a fake.
  */
-export interface MapPort extends BasemapDisplay, ViewSource {
+export interface MapPort extends BasemapDisplay, ViewSource, DrawingSurface {
   /** Releases the map and everything it holds. */
   destroy(): void
 }

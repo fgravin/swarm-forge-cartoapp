@@ -34,6 +34,9 @@ function recordingMap(): RecordingMap {
         }
       },
       showBasemap: (tiles) => drawn.push(tiles),
+      setDrawingMode: () => undefined,
+      onDraw: () => () => undefined,
+      showRectangles: () => undefined,
       destroy: () => {
         destroyCount += 1
       },
