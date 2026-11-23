@@ -1,8 +1,10 @@
 import type { MapPort } from '../../src/application/mapPort'
+import type { Bbox } from '../../src/domain/bbox'
+import type { DrawEvent, MapPointer, ScreenPoint } from '../../src/domain/bboxCapture'
 import type { RasterTiles } from '../../src/domain/rasterTiles'
-import type { MapView } from '../../src/domain/mapView'
+import type { LngLat, MapView } from '../../src/domain/mapView'
 
-/** A map that records what the application draws on it, moved by the steps as a user would. */
+/** A map that records what the application draws on it, moved and drawn on by the steps as a user would. */
 export interface FakeMap {
   readonly port: MapPort
   /** The user moves the map to `view`. */
@@ -11,29 +13,75 @@ export interface FakeMap {
   drawnBasemaps(): readonly RasterTiles[]
   /** The credits the map shows: those of the basemap it draws. */
   credits(): readonly string[]
+  /** Whether the application has turned the drawing mode of the map on. */
+  drawingMode(): boolean
+  /** The rectangles the map shows over its basemap. */
+  rectangles(): readonly Bbox[]
+  /** Where the pointer is when it is over `position`. */
+  pointerAt(position: LngLat): MapPointer
+  /** Where the pointer is when it is at `point` on the screen. */
+  pointerAtPoint(point: ScreenPoint): MapPointer
+  /** The user presses, moves, or releases the pointer on the map, or presses Escape, while the drawing mode is on. */
+  draw(event: DrawEvent): void
 }
 
+/**
+ * How many pixels a degree spans on the fake map, which does not project the
+ * Earth: x grows with longitude and y with southing, from 0° E, 0° N.
+ */
+const PIXELS_PER_DEGREE = 1000
+
 export function createFakeMap(): FakeMap {
-  const listeners = new Set<(view: MapView) => void>()
+  const viewListeners = new Set<(view: MapView) => void>()
+  const drawListeners = new Set<(event: DrawEvent) => void>()
   const drawn: RasterTiles[] = []
+  let drawingMode = false
+  let rectangles: readonly Bbox[] = []
   const port: MapPort = {
     onViewChange(listener) {
-      listeners.add(listener)
+      viewListeners.add(listener)
       return () => {
-        listeners.delete(listener)
+        viewListeners.delete(listener)
       }
     },
     showBasemap(tiles) {
       drawn.push(tiles)
     },
+    setDrawingMode(on) {
+      drawingMode = on
+    },
+    onDraw(listener) {
+      drawListeners.add(listener)
+      return () => {
+        drawListeners.delete(listener)
+      }
+    },
+    showRectangles(shown) {
+      rectangles = shown
+    },
     destroy() {
-      listeners.clear()
+      viewListeners.clear()
+      drawListeners.clear()
     },
   }
   return {
     port,
-    moveTo: (view) => listeners.forEach((listener) => listener(view)),
+    moveTo: (view) => viewListeners.forEach((listener) => listener(view)),
     drawnBasemaps: () => drawn,
     credits: () => drawn.slice(-1).map((tiles) => tiles.attribution),
+    drawingMode: () => drawingMode,
+    rectangles: () => rectangles,
+    pointerAt: (position) => ({
+      point: { x: position.lng * PIXELS_PER_DEGREE, y: -position.lat * PIXELS_PER_DEGREE },
+      position,
+    }),
+    pointerAtPoint: (point) => ({
+      point,
+      position: { lng: point.x / PIXELS_PER_DEGREE, lat: -point.y / PIXELS_PER_DEGREE },
+    }),
+    draw(event) {
+      // The map reports what the user does with the pointer only in the drawing mode.
+      if (drawingMode) drawListeners.forEach((listener) => listener(event))
+    },
   }
 }

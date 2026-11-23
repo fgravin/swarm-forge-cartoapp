@@ -2,7 +2,7 @@ import { computed, shallowRef, type ComputedRef } from 'vue'
 
 import { BASEMAP_PROVIDERS, BASEMAPS, INITIAL_BASEMAP, type BasemapId } from '../domain/basemaps'
 import { rasterTiles } from '../domain/rasterTiles'
-import type { BasemapDisplay } from './mapPort'
+import type { BasemapDisplay, Connectable } from './mapPort'
 
 /** A basemap as the panel offers it. */
 export interface BasemapOption {
@@ -17,15 +17,14 @@ export interface BasemapGroup {
   readonly options: readonly BasemapOption[]
 }
 
+/** What the basemap panel offers and does. */
 export interface BasemapsState {
   readonly groups: ComputedRef<readonly BasemapGroup[]>
   select(id: BasemapId): void
-  /** Shows the selected basemap on `display`, now and after each change, until `disconnect`. */
-  connect(display: BasemapDisplay): void
-  disconnect(): void
 }
 
-export function useBasemaps(): BasemapsState {
+/** Shows the selected basemap on the connected display, now and after each change. */
+export function useBasemaps(): BasemapsState & Connectable<BasemapDisplay> {
   const selected = shallowRef<BasemapId>(INITIAL_BASEMAP)
   const groups = computed(() =>
     BASEMAP_PROVIDERS.map((provider) => ({

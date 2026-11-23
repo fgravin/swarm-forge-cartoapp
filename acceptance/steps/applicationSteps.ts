@@ -17,6 +17,6 @@ export const APPLICATION_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the view indicator reads (.+)$/, ({ screen }, [description]) => {
-    expect(screen.description.value).toBe(description)
+    expect(screen.mapView.description.value).toBe(description)
   }),
 ]

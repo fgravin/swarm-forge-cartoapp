@@ -22,6 +22,25 @@ const BROWSER_APIS = [
   'requestAnimationFrame',
 ].map((name) => ({ name, message: 'Reach the browser through a port an adapter implements.' }))
 
+// DOM types an adapter translates into the domain's own types before they cross inward.
+const DOM_TYPES = Object.fromEntries(
+  [
+    'Event',
+    'EventTarget',
+    'UIEvent',
+    'MouseEvent',
+    'PointerEvent',
+    'TouchEvent',
+    'KeyboardEvent',
+    'WheelEvent',
+    'Node',
+    'Element',
+    'HTMLElement',
+    'Document',
+    'Window',
+  ].map((name) => [name, { message: 'Translate DOM types in the adapter; use a type the domain or application owns.' }]),
+)
+
 export default tseslint.config(
   {
     ignores: [
@@ -77,6 +96,7 @@ export default tseslint.config(
     files: ['src/domain/**', 'src/application/**'],
     rules: {
       'no-restricted-globals': ['error', ...BROWSER_APIS],
+      '@typescript-eslint/no-restricted-types': ['error', { types: DOM_TYPES }],
     },
   },
   {

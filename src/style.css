@@ -5,3 +5,16 @@ body,
 #app {
   height: 100%;
 }
+
+/* The drawing mode of the map (`src/adapters/maplibreMap.ts`): a crosshair in
+   place of MapLibre's grab cursors, and a touch drag that draws instead of
+   panning, whatever touch-action MapLibre sets with its drag handler off. */
+.map-drawing .maplibregl-canvas-container.maplibregl-interactive,
+.map-drawing .maplibregl-canvas-container.maplibregl-interactive:active {
+  cursor: crosshair;
+}
+
+.map-drawing .maplibregl-canvas-container.maplibregl-interactive,
+.map-drawing .maplibregl-canvas-container.maplibregl-interactive .maplibregl-canvas {
+  touch-action: none;
+}

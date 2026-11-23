@@ -1,34 +1,32 @@
-import type { ComputedRef, ShallowRef } from 'vue'
+import type { Connectable, MapPort } from './mapPort'
+import { useBasemaps, type BasemapsState } from './useBasemaps'
+import { useBboxCapture, type BboxCaptureState } from './useBboxCapture'
+import { useMapView, type MapViewState } from './useMapView'
 
-import type { BasemapId } from '../domain/basemaps'
-import type { MapView } from '../domain/mapView'
-import type { MapPort } from './mapPort'
-import { useBasemaps, type BasemapGroup } from './useBasemaps'
-import { useMapView } from './useMapView'
-
-/** The map screen: the map it draws on, the view it follows, and the basemap the user chose. */
+/** The map screen: the view it follows, the basemap the user chose, and the bbox the user drew. */
 export interface MapScreenState {
-  readonly view: Readonly<ShallowRef<MapView>>
-  readonly description: ComputedRef<string>
-  readonly groups: ComputedRef<readonly BasemapGroup[]>
-  select(id: BasemapId): void
-  /**
-   * Shows the selected basemap on `map` and follows its view, until `disconnect`
-   * or until another map is connected; then releases it.
-   */
-  connect(map: MapPort): void
-  /** Stops using the connected map and releases it. */
-  disconnect(): void
+  readonly mapView: MapViewState
+  readonly basemaps: BasemapsState
+  readonly bboxCapture: BboxCaptureState
 }
 
-export function useMapScreen(): MapScreenState {
+/** The map screen, and the map it draws on. */
+export type MapScreen = MapScreenState & Connectable<MapPort>
+
+/**
+ * Shows the selected basemap and the bbox on the connected map, and follows
+ * its view and what the user draws on it. Releases the map on `disconnect`,
+ * or when another map is connected.
+ */
+export function useMapScreen(): MapScreen {
   const mapView = useMapView()
   const basemaps = useBasemaps()
+  const bboxCapture = useBboxCapture()
+  const parts: readonly Connectable<MapPort>[] = [mapView, basemaps, bboxCapture]
   let connected: MapPort | undefined
 
   function disconnect(): void {
-    basemaps.disconnect()
-    mapView.disconnect()
+    parts.forEach((part) => part.disconnect())
     connected?.destroy()
     connected = undefined
   }
@@ -36,16 +34,8 @@ export function useMapScreen(): MapScreenState {
   function connect(map: MapPort): void {
     disconnect()
     connected = map
-    mapView.connect(map)
-    basemaps.connect(map)
+    parts.forEach((part) => part.connect(map))
   }
 
-  return {
-    view: mapView.view,
-    description: mapView.description,
-    groups: basemaps.groups,
-    select: basemaps.select,
-    connect,
-    disconnect,
-  }
+  return { mapView, basemaps, bboxCapture, connect, disconnect }
 }
