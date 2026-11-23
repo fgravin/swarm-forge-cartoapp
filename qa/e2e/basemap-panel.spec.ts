@@ -1,13 +1,9 @@
 import { expect, test, type Locator } from '@playwright/test'
 
-import { boxOf, mapScreen, type Box } from './mapScreen'
+import { boxOf, liesInside, mapScreen, overlaps } from './mapScreen'
 import { serveTilesLocally } from './tiles'
 
 // Executable form of qa/procedures/basemap-panel.md.
-
-function overlaps(a: Box, b: Box): boolean {
-  return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
-}
 
 /** Expects `locator` to find exactly the elements named `names`, in this order. */
 async function expectNamesInOrder(locator: Locator, names: readonly string[]): Promise<void> {
@@ -24,10 +20,7 @@ test('basemap-panel 1: the panel offers each basemap under its provider', async 
   await expect(screen.panel.getByText('Fonds de plan', { exact: true })).toBeVisible()
   const panel = await boxOf(screen.panel)
   const map = await boxOf(screen.map)
-  expect(panel.x).toBeGreaterThanOrEqual(map.x)
-  expect(panel.y).toBeGreaterThanOrEqual(map.y)
-  expect(panel.x + panel.width).toBeLessThanOrEqual(map.x + map.width)
-  expect(panel.y + panel.height).toBeLessThanOrEqual(map.y + map.height)
+  expect(liesInside(panel, map)).toBe(true)
   expect(panel.x - map.x).toBeLessThan(map.x + map.width - panel.x)
   expect(panel.y - map.y).toBeLessThan(map.y + map.height - panel.y)
 

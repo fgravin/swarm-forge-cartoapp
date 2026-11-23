@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
 import { BASEMAP_NAMES, BASEMAP_TILES, type BasemapName } from './basemaps'
-import { serversOf, tilesOf, type Tile } from './tiles'
+import { serveTilesLocally, serversOf, tilesOf, type Tile } from './tiles'
 
 /** What the user sees of the map screen, found by role, accessible name, and visible text. */
 export interface MapScreen {
@@ -14,10 +14,20 @@ export interface MapScreen {
   readonly viewIndicator: Locator
   readonly panel: Locator
   basemap(name: BasemapName): Locator
+  /** The map's own surface, under the mouse cursor. */
+  readonly surface: Locator
+  /** The toggle button of the drawing mode. */
+  readonly drawButton: Locator
+  /** The "Emprise" panel. */
+  readonly bboxPanel: Locator
+  /** What the "Emprise" panel reads: the captured bbox, or "Aucune emprise". */
+  readonly bboxText: Locator
+  readonly clearButton: Locator
 }
 
 export function mapScreen(page: Page): MapScreen {
   const map = page.getByTestId('map')
+  const bboxPanel = page.getByRole('region', { name: 'Emprise', exact: true })
   return {
     header: page.getByRole('heading', { name: 'Carto App' }),
     map,
@@ -27,7 +37,26 @@ export function mapScreen(page: Page): MapScreen {
     viewIndicator: page.getByTestId('map-view'),
     panel: page.getByRole('group', { name: 'Fonds de plan', exact: true }),
     basemap: (name) => page.getByRole('radio', { name, exact: true }),
+    surface: map.getByRole('region', { name: 'Map', exact: true }),
+    drawButton: page.getByRole('button', { name: 'Dessiner une emprise', exact: true }),
+    bboxPanel,
+    bboxText: bboxPanel.getByRole('status'),
+    clearButton: page.getByRole('button', { name: "Effacer l'emprise", exact: true }),
   }
+}
+
+/** The application, open, and the tile requests it made, answered locally. */
+export interface OpenApplication {
+  readonly screen: MapScreen
+  readonly requested: readonly string[]
+}
+
+/** Opens the application with its tile requests answered locally, and waits until the map asks for tiles. */
+export async function openApplication(page: Page): Promise<OpenApplication> {
+  const requested = await serveTilesLocally(page)
+  await page.goto('/')
+  await expect.poll(() => requested.length).toBeGreaterThan(0)
+  return { screen: mapScreen(page), requested }
 }
 
 /** Expects `selected` to be the only checked basemap. */
@@ -65,6 +94,20 @@ export interface Box {
   readonly y: number
   readonly width: number
   readonly height: number
+}
+
+export function overlaps(a: Box, b: Box): boolean {
+  return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+}
+
+/** Whether `inner` lies entirely inside `outer`. */
+export function liesInside(inner: Box, outer: Box): boolean {
+  return (
+    inner.x >= outer.x &&
+    inner.y >= outer.y &&
+    inner.x + inner.width <= outer.x + outer.width &&
+    inner.y + inner.height <= outer.y + outer.height
+  )
 }
 
 /** The tiles of `basemap` among `urls`. */
