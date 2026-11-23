@@ -14,6 +14,8 @@
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "test:property": "vitest run --config vitest.property.config.ts --passWithNoTests",
+    "acceptance": "tsx acceptance/run.ts",
+    "acceptance:generate": "tsx acceptance/generate.ts",
     "coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed"

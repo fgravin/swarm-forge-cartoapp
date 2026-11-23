@@ -1,27 +1,23 @@
 import { describe, expect, it } from 'vitest'
 
 import { INITIAL_MAP_VIEW, type MapView } from '../domain/mapView'
-import type { MapPort } from './mapPort'
+import type { ViewSource } from './mapPort'
 import { useMapView } from './useMapView'
 
-function fakeMap() {
+function fakeSource() {
   const listeners = new Set<(view: MapView) => void>()
-  let destroyed = false
-  const port: MapPort = {
+  const source: ViewSource = {
     onViewChange(listener) {
       listeners.add(listener)
       return () => {
         listeners.delete(listener)
       }
     },
-    destroy() {
-      destroyed = true
-    },
   }
   return {
-    port,
+    source,
     moveTo: (view: MapView) => listeners.forEach((listener) => listener(view)),
-    isDestroyed: () => destroyed,
+    listenerCount: () => listeners.size,
   }
 }
 
@@ -35,64 +31,63 @@ describe('useMapView', () => {
     expect(description.value).toBe('45.5646° N, 5.9178° E · zoom 5.0')
   })
 
-  it('follows the connected map', () => {
-    const map = fakeMap()
+  it('follows the connected source', () => {
+    const map = fakeSource()
     const { view, description, connect } = useMapView()
 
-    connect(map.port)
+    connect(map.source)
     map.moveTo(BUENOS_AIRES)
 
     expect(view.value).toEqual(BUENOS_AIRES)
     expect(description.value).toBe('34.6037° S, 58.3816° W · zoom 11.0')
   })
 
-  it('stops following and releases the map when disconnected', () => {
-    const map = fakeMap()
+  it('stops following the source when disconnected', () => {
+    const map = fakeSource()
     const { view, connect, disconnect } = useMapView()
-    connect(map.port)
+    connect(map.source)
 
     disconnect()
     map.moveTo(BUENOS_AIRES)
 
     expect(view.value).toEqual(INITIAL_MAP_VIEW)
-    expect(map.isDestroyed()).toBe(true)
+    expect(map.listenerCount()).toBe(0)
   })
 
-  it('releases the previous map when another one is connected', () => {
-    const first = fakeMap()
-    const second = fakeMap()
+  it('stops following the previous source when another one is connected', () => {
+    const first = fakeSource()
+    const second = fakeSource()
     const { view, connect } = useMapView()
-    connect(first.port)
+    connect(first.source)
 
-    connect(second.port)
+    connect(second.source)
     first.moveTo(BUENOS_AIRES)
 
-    expect(first.isDestroyed()).toBe(true)
-    expect(second.isDestroyed()).toBe(false)
+    expect(first.listenerCount()).toBe(0)
+    expect(second.listenerCount()).toBe(1)
     expect(view.value).toEqual(INITIAL_MAP_VIEW)
   })
 
-  it('does nothing when disconnected without a map', () => {
+  it('does nothing when disconnected without a source', () => {
     const { view, disconnect } = useMapView()
 
     expect(() => disconnect()).not.toThrow()
     expect(view.value).toEqual(INITIAL_MAP_VIEW)
   })
 
-  it('releases a map only once', () => {
-    let destroyCount = 0
-    const port: MapPort = {
-      onViewChange: () => () => {},
-      destroy: () => {
-        destroyCount += 1
+  it('stops following a source only once', () => {
+    let stopCount = 0
+    const source: ViewSource = {
+      onViewChange: () => () => {
+        stopCount += 1
       },
     }
     const { connect, disconnect } = useMapView()
-    connect(port)
+    connect(source)
 
     disconnect()
     disconnect()
 
-    expect(destroyCount).toBe(1)
+    expect(stopCount).toBe(1)
   })
 })

@@ -2,22 +2,13 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { MapLibreMap, NavigationControl, type StyleSpecification } from 'maplibre-gl'
 
 import type { MapPort } from '../application/mapPort'
+import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
 
-const BASE_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    osm: {
-      type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      maxzoom: 19,
-      attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    },
-  },
-  layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
-}
+// One style for the life of the map: the basemap is a source and a layer swapped
+// under the overlays, so changing it keeps the view and everything drawn above.
+const EMPTY_STYLE: StyleSpecification = { version: 8, sources: {}, layers: [] }
+const BASEMAP = 'basemap'
 
 /**
  * Creates the MapLibre map inside `container`.
@@ -28,11 +19,27 @@ const BASE_STYLE: StyleSpecification = {
 export function createMaplibreMap(container: HTMLElement, initialView: MapView): MapPort {
   const map = new MapLibreMap({
     container,
-    style: BASE_STYLE,
+    style: EMPTY_STYLE,
     center: [initialView.center.lng, initialView.center.lat],
     zoom: initialView.zoom,
+    // Credit the basemap alone: no default "MapLibre" entry beside its attribution.
+    attributionControl: {},
   })
   map.addControl(new NavigationControl(), 'top-right')
+  const loaded = map.once('load')
+
+  function drawBasemap(basemap: RasterTiles): void {
+    if (map.getLayer(BASEMAP)) map.removeLayer(BASEMAP)
+    if (map.getSource(BASEMAP)) map.removeSource(BASEMAP)
+    map.addSource(BASEMAP, {
+      type: 'raster',
+      tiles: [...basemap.tileUrls],
+      tileSize: basemap.tileSize,
+      maxzoom: basemap.maxZoom,
+      attribution: basemap.attribution,
+    })
+    map.addLayer({ id: BASEMAP, type: 'raster', source: BASEMAP }, map.getLayersOrder()[0])
+  }
 
   return {
     onViewChange(listener) {
@@ -44,6 +51,9 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
       return () => {
         map.off('move', notify)
       }
+    },
+    showBasemap(basemap) {
+      void loaded.then(() => drawBasemap(basemap))
     },
     destroy() {
       map.remove()
