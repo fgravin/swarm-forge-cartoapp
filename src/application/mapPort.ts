@@ -31,6 +31,15 @@ export interface DrawingSurface {
 }
 
 /**
+ * A part of the application that uses one `Port` at a time: from `connect`
+ * until `disconnect`, or until another port is connected.
+ */
+export interface Connectable<Port> {
+  connect(port: Port): void
+  disconnect(): void
+}
+
+/**
  * What the application needs from a map. The MapLibre adapter implements it;
  * unit and acceptance tests replace it with a fake.
  */

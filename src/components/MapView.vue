@@ -8,10 +8,12 @@ import BboxPanel from './BboxPanel.vue'
 
 const container = useTemplateRef<HTMLDivElement>('container')
 const screen = useMapScreen()
-const { description, groups, select, drawingMode, bboxText, canClear, toggleDrawing, clearBbox } = screen
+const { description } = screen.mapView
+const { groups, select } = screen.basemaps
+const { drawingMode, bboxText, canClear, toggleDrawing, clearBbox } = screen.bboxCapture
 
 onMounted(() => {
-  if (container.value) screen.connect(createMaplibreMap(container.value, screen.view.value))
+  if (container.value) screen.connect(createMaplibreMap(container.value, screen.mapView.view.value))
 })
 onBeforeUnmount(() => {
   screen.disconnect()

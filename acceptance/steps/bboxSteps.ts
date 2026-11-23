@@ -25,8 +25,8 @@ function dragBetween(world: World, from: LngLat, to: LngLat): void {
 }
 
 function turnDrawingModeOn({ screen }: World): void {
-  screen.toggleDrawing()
-  expect(screen.drawingMode.value).toBe(true)
+  screen.bboxCapture.toggleDrawing()
+  expect(screen.bboxCapture.drawingMode.value).toBe(true)
 }
 
 /** The map shows `expected`, to 5 decimals, and no other rectangle. */
@@ -42,7 +42,7 @@ function notedBbox(world: World): string {
 
 export const BBOX_STEPS: readonly StepHandler<World>[] = [
   step(/^the user presses the drawing button$/, ({ screen }) => {
-    screen.toggleDrawing()
+    screen.bboxCapture.toggleDrawing()
   }),
 
   step(/^the user has turned the drawing mode on$/, (world) => {
@@ -51,7 +51,7 @@ export const BBOX_STEPS: readonly StepHandler<World>[] = [
 
   step(/^the drawing mode is (.+)$/, ({ screen, map }, [text = '']) => {
     const on = parseFlag(text, 'drawing mode', 'on', 'off')
-    expect(screen.drawingMode.value).toBe(on)
+    expect(screen.bboxCapture.drawingMode.value).toBe(on)
     expect(map.drawingMode()).toBe(on)
   }),
 
@@ -89,12 +89,12 @@ export const BBOX_STEPS: readonly StepHandler<World>[] = [
   step(/^the user has captured a bbox$/, (world) => {
     turnDrawingModeOn(world)
     dragBetween(world, SYDNEY.from, SYDNEY.to)
-    world.notedBbox = world.screen.bboxText.value
+    world.notedBbox = world.screen.bboxCapture.bboxText.value
     expectOnlyRectangle(world, world.notedBbox)
   }),
 
   step(/^the user clears the bbox$/, ({ screen }) => {
-    screen.clearBbox()
+    screen.bboxCapture.clearBbox()
   }),
 
   step(/^the user moves and zooms the map$/, ({ map }) => {
@@ -102,7 +102,7 @@ export const BBOX_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the bbox panel reads (.+)$/, ({ screen }, [text]) => {
-    expect(screen.bboxText.value).toBe(text)
+    expect(screen.bboxCapture.bboxText.value).toBe(text)
   }),
 
   step(/^the map shows the rectangle (.+)$/, (world, [rectangle = '']) => {
@@ -116,13 +116,13 @@ export const BBOX_STEPS: readonly StepHandler<World>[] = [
   step(/^the previous bbox is (.+)$/, (world, [outcome = '']) => {
     const kept = parseFlag(outcome, 'previous bbox outcome', 'kept', 'replaced')
     const previous = notedBbox(world)
-    const panel = world.screen.bboxText.value
+    const panel = world.screen.bboxCapture.bboxText.value
     if (kept) expect(panel).toBe(previous)
     else expect(panel).not.toBe(previous)
     expectOnlyRectangle(world, panel)
   }),
 
   step(/^clearing the bbox is (.+)$/, ({ screen }, [offer = '']) => {
-    expect(screen.canClear.value).toBe(parseFlag(offer, 'clear offer', 'offered', 'not offered'))
+    expect(screen.bboxCapture.canClear.value).toBe(parseFlag(offer, 'clear offer', 'offered', 'not offered'))
   }),
 ]

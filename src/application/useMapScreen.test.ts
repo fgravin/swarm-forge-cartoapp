@@ -54,8 +54,8 @@ function fakeMap() {
   }
 }
 
-function selectedIds(screen: MapScreenState): readonly BasemapId[] {
-  return screen.groups.value
+function selectedIds({ basemaps }: MapScreenState): readonly BasemapId[] {
+  return basemaps.groups.value
     .flatMap((group) => group.options)
     .filter((option) => option.selected)
     .map((option) => option.id)
@@ -71,8 +71,8 @@ describe('useMapScreen', () => {
   it('starts at the initial view, with Positron selected', () => {
     const screen = useMapScreen()
 
-    expect(screen.view.value).toEqual(INITIAL_MAP_VIEW)
-    expect(screen.description.value).toBe('45.5646° N, 5.9178° E · zoom 5.0')
+    expect(screen.mapView.view.value).toEqual(INITIAL_MAP_VIEW)
+    expect(screen.mapView.description.value).toBe('45.5646° N, 5.9178° E · zoom 5.0')
     expect(selectedIds(screen)).toEqual(['positron'])
   })
 
@@ -84,7 +84,7 @@ describe('useMapScreen', () => {
     map.moveTo(BUENOS_AIRES)
 
     expect(map.drawn).toEqual([rasterTiles(BASEMAPS.positron)])
-    expect(screen.description.value).toBe('34.6037° S, 58.3816° W · zoom 11.0')
+    expect(screen.mapView.description.value).toBe('34.6037° S, 58.3816° W · zoom 11.0')
   })
 
   it('shows the basemap the user chooses on the connected map, keeping the view', () => {
@@ -93,11 +93,11 @@ describe('useMapScreen', () => {
     screen.connect(map.port)
     map.moveTo(BUENOS_AIRES)
 
-    screen.select('world-imagery')
+    screen.basemaps.select('world-imagery')
 
     expect(selectedIds(screen)).toEqual(['world-imagery'])
     expect(map.drawn.at(-1)).toEqual(rasterTiles(BASEMAPS['world-imagery']))
-    expect(screen.view.value).toEqual(BUENOS_AIRES)
+    expect(screen.mapView.view.value).toEqual(BUENOS_AIRES)
   })
 
   it('captures the bbox the user draws on the connected map', () => {
@@ -105,12 +105,12 @@ describe('useMapScreen', () => {
     const screen = useMapScreen()
     screen.connect(map.port)
 
-    screen.toggleDrawing()
+    screen.bboxCapture.toggleDrawing()
     map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
-    expect(screen.bboxText.value).toBe('2.30000, 48.80000, 2.40000, 48.90000')
-    expect(screen.drawingMode.value).toBe(false)
-    expect(screen.canClear.value).toBe(true)
+    expect(screen.bboxCapture.bboxText.value).toBe('2.30000, 48.80000, 2.40000, 48.90000')
+    expect(screen.bboxCapture.drawingMode.value).toBe(false)
+    expect(screen.bboxCapture.canClear.value).toBe(true)
     expect(map.rectangles()).toEqual([PARIS_BBOX])
   })
 
@@ -118,13 +118,13 @@ describe('useMapScreen', () => {
     const map = fakeMap()
     const screen = useMapScreen()
     screen.connect(map.port)
-    screen.toggleDrawing()
+    screen.bboxCapture.toggleDrawing()
     map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
     map.moveTo(BUENOS_AIRES)
-    screen.select('world-imagery')
+    screen.basemaps.select('world-imagery')
 
-    expect(screen.bboxText.value).toBe('2.30000, 48.80000, 2.40000, 48.90000')
+    expect(screen.bboxCapture.bboxText.value).toBe('2.30000, 48.80000, 2.40000, 48.90000')
     expect(map.rectangles()).toEqual([PARIS_BBOX])
   })
 
@@ -132,12 +132,12 @@ describe('useMapScreen', () => {
     const map = fakeMap()
     const screen = useMapScreen()
     screen.connect(map.port)
-    screen.toggleDrawing()
+    screen.bboxCapture.toggleDrawing()
     map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
-    screen.clearBbox()
+    screen.bboxCapture.clearBbox()
 
-    expect(screen.bboxText.value).toBe('Aucune emprise')
+    expect(screen.bboxCapture.bboxText.value).toBe('Aucune emprise')
     expect(map.rectangles()).toEqual([])
   })
 
@@ -147,15 +147,15 @@ describe('useMapScreen', () => {
     screen.connect(map.port)
 
     screen.disconnect()
-    screen.select('dark-matter')
+    screen.basemaps.select('dark-matter')
     map.moveTo(BUENOS_AIRES)
-    screen.toggleDrawing()
+    screen.bboxCapture.toggleDrawing()
     map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
     expect(map.destroyCount()).toBe(1)
     expect(map.drawn).toEqual([rasterTiles(BASEMAPS.positron)])
-    expect(screen.view.value).toEqual(INITIAL_MAP_VIEW)
-    expect(screen.bboxText.value).toBe('Aucune emprise')
+    expect(screen.mapView.view.value).toEqual(INITIAL_MAP_VIEW)
+    expect(screen.bboxCapture.bboxText.value).toBe('Aucune emprise')
   })
 
   it('releases the previous map when another one is connected, and draws the selected basemap on the new one', () => {
@@ -163,7 +163,7 @@ describe('useMapScreen', () => {
     const second = fakeMap()
     const screen = useMapScreen()
     screen.connect(first.port)
-    screen.select('dark-matter')
+    screen.basemaps.select('dark-matter')
 
     screen.connect(second.port)
     first.moveTo(BUENOS_AIRES)
@@ -171,7 +171,7 @@ describe('useMapScreen', () => {
     expect(first.destroyCount()).toBe(1)
     expect(second.destroyCount()).toBe(0)
     expect(second.drawn).toEqual([rasterTiles(BASEMAPS['dark-matter'])])
-    expect(screen.view.value).toEqual(INITIAL_MAP_VIEW)
+    expect(screen.mapView.view.value).toEqual(INITIAL_MAP_VIEW)
   })
 
   it('releases a map only once', () => {
@@ -189,6 +189,6 @@ describe('useMapScreen', () => {
     const screen = useMapScreen()
 
     expect(() => screen.disconnect()).not.toThrow()
-    expect(screen.view.value).toEqual(INITIAL_MAP_VIEW)
+    expect(screen.mapView.view.value).toEqual(INITIAL_MAP_VIEW)
   })
 })

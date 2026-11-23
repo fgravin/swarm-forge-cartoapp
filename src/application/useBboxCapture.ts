@@ -10,8 +10,9 @@ import {
   toggleDrawing as withDrawingToggled,
   type BboxCapture,
 } from '../domain/bboxCapture'
-import type { DrawingSurface } from './mapPort'
+import type { Connectable, DrawingSurface } from './mapPort'
 
+/** What the drawing button and the bbox panel show and do. */
 export interface BboxCaptureState {
   /** The text of the bbox panel. */
   readonly bboxText: ComputedRef<string>
@@ -20,12 +21,10 @@ export interface BboxCaptureState {
   /** What the drawing button does. */
   toggleDrawing(): void
   clearBbox(): void
-  /** Draws on `surface` and follows what the user does on it, until `disconnect` or another surface is connected. */
-  connect(surface: DrawingSurface): void
-  disconnect(): void
 }
 
-export function useBboxCapture(): BboxCaptureState {
+/** Draws the bbox on the connected surface and follows what the user draws on it. */
+export function useBboxCapture(): BboxCaptureState & Connectable<DrawingSurface> {
   const capture = shallowRef<BboxCapture>(INITIAL_BBOX_CAPTURE)
   const bboxText = computed(() => describeBbox(capture.value.bbox))
   const canClear = computed(() => capture.value.bbox !== undefined)
