@@ -42,9 +42,9 @@ export interface SuggestionOption {
 export interface PlaceSearchState {
   readonly text: ComputedRef<string>
   /** Whether the field refuses input: without a place finder. */
-  readonly disabled: boolean
+  readonly disabled: ComputedRef<boolean>
   /** What the empty field shows. */
-  readonly hint: string
+  readonly hint: ComputedRef<string>
   /** Whether the suggestion list is open. */
   readonly expanded: ComputedRef<boolean>
   readonly options: ComputedRef<readonly SuggestionOption[]>
@@ -125,8 +125,8 @@ export function usePlaceSearch({ finder, timer }: PlaceSearchServices): PlaceSea
 
   return {
     text: computed(() => search.value.text),
-    disabled: finder === undefined,
-    hint: finder === undefined ? UNCONFIGURED_HINT : SEARCH_HINT,
+    disabled: computed(() => finder === undefined),
+    hint: computed(() => (finder === undefined ? UNCONFIGURED_HINT : SEARCH_HINT)),
     expanded: computed(() => options.value.length > 0),
     options,
     activeOptionId: computed(() => options.value.find((option) => option.active)?.id),

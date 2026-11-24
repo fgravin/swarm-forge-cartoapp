@@ -11,7 +11,7 @@ const screen = useMapScreen({
   timer: browserTimer,
 })
 const search = screen.placeSearch
-const { text, expanded, options, activeOptionId, message, canClear } = search
+const { text, disabled, hint, expanded, options, activeOptionId, message, canClear } = search
 </script>
 
 <template>
@@ -21,8 +21,8 @@ const { text, expanded, options, activeOptionId, message, canClear } = search
       <h1 class="shrink-0 text-base font-semibold text-slate-900">Carto App</h1>
       <PlaceSearch
         :text="text"
-        :disabled="search.disabled"
-        :hint="search.hint"
+        :disabled="disabled"
+        :hint="hint"
         :expanded="expanded"
         :options="options"
         :active-option-id="activeOptionId"

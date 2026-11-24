@@ -221,11 +221,11 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the search field is (?!empty$)(.+)$/, ({ screen }, [state = '']) => {
-    expect(screen.placeSearch.disabled).toBe(parseFlag(state, 'search field state', 'disabled', 'enabled'))
+    expect(screen.placeSearch.disabled.value).toBe(parseFlag(state, 'search field state', 'disabled', 'enabled'))
   }),
 
   step(/^the search field shows the hint (.+)$/, ({ screen }, [hint]) => {
-    expect(screen.placeSearch.hint).toBe(hint)
+    expect(screen.placeSearch.hint.value).toBe(hint)
   }),
 
   step(/^clearing the search is (.+)$/, ({ screen }, [offer = '']) => {

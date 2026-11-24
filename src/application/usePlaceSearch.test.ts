@@ -115,8 +115,8 @@ async function searchFor(clock: ReturnType<typeof fakeClock>, search: PlaceSearc
 describe('usePlaceSearch without a place finder', () => {
   it('is disabled and says it is not configured', () => {
     const search = usePlaceSearch({ finder: undefined, timer: fakeClock().timer })
-    expect(search.disabled).toBe(true)
-    expect(search.hint).toBe('Recherche non configurée')
+    expect(search.disabled.value).toBe(true)
+    expect(search.hint.value).toBe('Recherche non configurée')
   })
 
   it('ignores what is typed, and waits for nothing', () => {
@@ -131,8 +131,8 @@ describe('usePlaceSearch without a place finder', () => {
 describe('usePlaceSearch', () => {
   it('is enabled, asks for a place or an address, and shows nothing', () => {
     const { search } = setUp()
-    expect(search.disabled).toBe(false)
-    expect(search.hint).toBe('Rechercher un lieu ou une adresse')
+    expect(search.disabled.value).toBe(false)
+    expect(search.hint.value).toBe('Rechercher un lieu ou une adresse')
     expect(search.text.value).toBe('')
     expect(search.expanded.value).toBe(false)
     expect(search.options.value).toEqual([])
