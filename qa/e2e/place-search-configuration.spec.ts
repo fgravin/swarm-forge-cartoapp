@@ -66,5 +66,6 @@ test('place-search-configuration 3: the username is kept out of the repository',
   expect(git('check-ignore', '-q', '.env.local').status, '.env.local is ignored').toBe(0)
   expect(git('ls-files', '.env', '.env.local').output).toBe('')
   // The QA procedures name the made-up QA username, `carto-qa`, and this check's own command.
-  expect(git('grep', '-n', 'VITE_GEONAMES_USERNAME=', '--', ':!qa/procedures/').output).toBe('')
+  // `[=]` matches an assignment, but not this line, which a plain `=` would.
+  expect(git('grep', '-n', 'VITE_GEONAMES_USERNAME[=]', '--', ':!qa/procedures/').output).toBe('')
 })

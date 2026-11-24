@@ -11,6 +11,7 @@ import {
   SEARCH_NAME,
   searchFor,
   typeSlowly,
+  KEY_INTERVAL_MS,
   type SearchBox,
 } from './searchBox'
 
@@ -64,8 +65,12 @@ test('place-search-clear 3: clearing the search before the pause makes no search
   const { search, geonames } = await openSearch(page)
   await search.field.click()
 
-  const lastKey = await typeSlowly(page, 'Gre')
-  await search.clearButton.click()
+  // "Effacer" shows from the first key on, and stays in place: find it while typing, so that the click takes no time.
+  const lastButOne = await typeSlowly(page, 'Gr')
+  const button = await boxOf(search.clearButton)
+  await page.waitForTimeout(Math.max(0, lastButOne + KEY_INTERVAL_MS - Date.now()))
+  const lastKey = await typeSlowly(page, 'e')
+  await page.mouse.click(button.x + button.width / 2, button.y + button.height / 2)
   expect(Date.now() - lastKey, 'milliseconds from the last key to "Effacer"').toBeLessThanOrEqual(100)
   await pause(page)
 

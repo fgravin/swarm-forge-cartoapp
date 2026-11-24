@@ -12,7 +12,7 @@ export const UNAVAILABLE = 'Recherche indisponible'
 export const NOTHING_FOUND = 'Aucun résultat'
 
 /** "To type T is to type it one key at a time, 100 ms apart." */
-const KEY_INTERVAL_MS = 100
+export const KEY_INTERVAL_MS = 100
 /** "To pause is to wait one second without typing." */
 const PAUSE_MS = 1000
 // "Right under the search field": the gap the layout leaves, in pixels.
