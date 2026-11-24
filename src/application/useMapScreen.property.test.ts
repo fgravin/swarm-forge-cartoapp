@@ -16,12 +16,13 @@ import {
 import { describeMapView, INITIAL_MAP_VIEW, type MapView } from '../domain/mapView'
 import { rasterTiles, type RasterTiles } from '../domain/rasterTiles'
 import type { MapPort } from './mapPort'
-import { useMapScreen, type MapScreen } from './useMapScreen'
-import type { PlaceSearchServices } from './usePlaceSearch'
+import { useMapScreen, type MapScreen, type MapScreenServices } from './useMapScreen'
 
-// No place finder: the place search is disabled, and waits for nothing.
-const NO_PLACE_SEARCH: PlaceSearchServices = {
+// No place finder: the place search is disabled, and waits for nothing. The WMS
+// servers never answer: every layer stays loading, and none is drawn.
+const NO_PLACE_SEARCH: MapScreenServices = {
   finder: undefined,
+  wms: { describeLayer: () => new Promise(() => {}) },
   timer: { after: () => () => {} },
 }
 
@@ -87,6 +88,8 @@ function recordingMap(): RecordingMap {
         rectangleCount += 1
       },
       goTo: () => {},
+      showLayers: () => {},
+      showCredits: () => {},
       destroy: () => {
         destroyCount += 1
       },

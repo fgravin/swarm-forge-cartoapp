@@ -3,14 +3,16 @@ import { useMapScreen, type MapScreen } from '../../src/application/useMapScreen
 import { createFakeClock, type FakeClock } from './fakeClock'
 import { createFakeGeoNames, USUAL_ANSWERS, type FakeGeoNames } from './fakeGeoNames'
 import { createFakeMap, type FakeMap } from './fakeMap'
+import { createFakeWmsServers, type FakeWmsServers } from './fakeWms'
 
 /**
  * The state one scenario execution drives: the application's map screen, and
- * fakes of the map, of GeoNames, and of the passing of time.
+ * fakes of the map, of GeoNames, of the WMS servers, and of the passing of time.
  */
 export interface World {
   readonly map: FakeMap
   readonly geonames: FakeGeoNames
+  readonly wms: FakeWmsServers
   readonly clock: FakeClock
   /** The application's map screen, once a step has started the application. */
   readonly screen: MapScreen
@@ -24,28 +26,33 @@ export interface World {
   notedSuggestion: number | undefined
   /** The names of the places GeoNames finds, as a step gave them. */
   foundPlaces: readonly string[]
+  /** The position, from 1, of the layer of the panel a step named last. */
+  notedLayer: number | undefined
 }
 
 export function createWorld(): World {
   const map = createFakeMap()
   const geonames = createFakeGeoNames(USUAL_ANSWERS)
+  const wms = createFakeWmsServers()
   const clock = createFakeClock()
   let started: MapScreen | undefined
   return {
     map,
     geonames,
+    wms,
     clock,
     get screen() {
       if (started === undefined) throw new Error('the application has not started: start it in an earlier step')
       return started
     },
     start(username) {
-      started = useMapScreen({ finder: geonamesPlaceFinder(username, geonames.source), timer: clock.timer })
+      started = useMapScreen({ finder: geonamesPlaceFinder(username, geonames.source), wms: wms.port, timer: clock.timer })
       started.connect(map.port)
     },
     notedBbox: undefined,
     typingGoal: undefined,
     notedSuggestion: undefined,
     foundPlaces: [],
+    notedLayer: undefined,
   }
 }
