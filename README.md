@@ -21,6 +21,16 @@ features are specified, built, and verified by six agents (see `swarmforge/`).
 
 Node 20.19 or later is required.
 
+## Place search
+
+The search field of the header asks the GeoNames web services. It needs a
+GeoNames username, read from the environment variable `VITE_GEONAMES_USERNAME`
+when the application is built or served; without one, the field is disabled.
+Create a free account at <https://www.geonames.org/login>, enable the free web
+services on its account page, and give the variable your username in
+`.env.local`, which git ignores. Never commit it, and do not use the public
+`demo` account: its credits are exhausted.
+
 ## Layout
 
 ```text

@@ -2,12 +2,12 @@
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue'
 
 import { createMaplibreMap } from '../adapters/maplibreMap'
-import { useMapScreen } from '../application/useMapScreen'
+import type { MapScreen } from '../application/useMapScreen'
 import BasemapPanel from './BasemapPanel.vue'
 import BboxPanel from './BboxPanel.vue'
 
+const { screen } = defineProps<{ screen: MapScreen }>()
 const container = useTemplateRef<HTMLDivElement>('container')
-const screen = useMapScreen()
 const { description } = screen.mapView
 const { groups, select } = screen.basemaps
 const { drawingMode, bboxText, canClear, toggleDrawing, clearBbox } = screen.bboxCapture

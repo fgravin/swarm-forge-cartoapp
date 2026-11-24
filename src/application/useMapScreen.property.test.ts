@@ -17,6 +17,13 @@ import { describeMapView, INITIAL_MAP_VIEW, type MapView } from '../domain/mapVi
 import { rasterTiles, type RasterTiles } from '../domain/rasterTiles'
 import type { MapPort } from './mapPort'
 import { useMapScreen, type MapScreen } from './useMapScreen'
+import type { PlaceSearchServices } from './usePlaceSearch'
+
+// No place finder: the place search is disabled, and waits for nothing.
+const NO_PLACE_SEARCH: PlaceSearchServices = {
+  finder: undefined,
+  timer: { after: () => () => {} },
+}
 
 /** What the user and the component do to the map screen. */
 type Action =
@@ -79,6 +86,7 @@ function recordingMap(): RecordingMap {
         rectangles = shown
         rectangleCount += 1
       },
+      goTo: () => {},
       destroy: () => {
         destroyCount += 1
       },
@@ -207,7 +215,7 @@ describe('useMapScreen', () => {
   it('draws the selected basemap and the bbox on the live map alone, follows only that map, and releases each map once', () => {
     fc.assert(
       fc.property(fc.array(actions, { maxLength: 60, size: 'max' }), (sequence) => {
-        const screen = useMapScreen()
+        const screen = useMapScreen(NO_PLACE_SEARCH)
         const model: Model = {
           selected: INITIAL_BASEMAP,
           view: INITIAL_MAP_VIEW,
