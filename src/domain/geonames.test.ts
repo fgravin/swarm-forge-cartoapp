@@ -126,7 +126,8 @@ describe('readSearchAnswer', () => {
   })
 
   it('reads a place with no class, code, region or country', () => {
-    expect(firstSuggestion(places({ name: 'Somewhere', lat: '1', lng: '2' }))).toMatchObject({ name: 'Somewhere', kind: 'place', context: '' })
+    const found = places({ name: 'Somewhere', lat: '1', lng: '2' })
+    expect(firstSuggestion(found)).toMatchObject({ name: 'Somewhere', kind: 'place', context: '' })
   })
 
   it('leaves out a place it cannot name or put on the map', () => {
@@ -158,11 +159,13 @@ describe('readSearchAnswer', () => {
     ['US', 'États-Unis'],
     ['NL', 'Pays-Bas'],
   ])('names the country %s in French: %s', (countryCode, country) => {
-    expect(firstSuggestion(NO_PLACE, answered({ address: { ...SAINT_ANDRE, countryCode } }))?.context).toBe(`Auvergne-Rhône-Alpes, ${country}`)
+    const found = answered({ address: { ...SAINT_ANDRE, countryCode } })
+    expect(firstSuggestion(NO_PLACE, found)?.context).toBe(`Auvergne-Rhône-Alpes, ${country}`)
   })
 
   it('prefers the country name GeoNames gives to the one of its country code', () => {
-    expect(firstSuggestion(places({ ...GRENOBLE, countryName: 'Royaume-Uni', countryCode: 'GB' }))?.context).toBe('Auvergne-Rhône-Alpes, Royaume-Uni')
+    const found = places({ ...GRENOBLE, countryName: 'Royaume-Uni', countryCode: 'GB' })
+    expect(firstSuggestion(found)?.context).toBe('Auvergne-Rhône-Alpes, Royaume-Uni')
   })
 
   it('names the country of a place from its country code when GeoNames gives no country name', () => {
