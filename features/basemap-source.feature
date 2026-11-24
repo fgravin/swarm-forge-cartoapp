@@ -5,8 +5,9 @@
 
 # basemap-source
 Feature: Basemap source
-  Each basemap is drawn from the raster tiles of its provider, and the map
-  credits that provider alone. The tiles need no API key.
+  Each basemap is drawn from the raster tiles of its provider. While no
+  layer of the "Couches" panel is shown, the map credits that provider
+  alone. The tiles need no API key.
   In a tile URL, {a,b,c,d} stands for four tile servers, one per letter, in
   that order. Esri tile URLs put the row {y} before the column {x}.
 
