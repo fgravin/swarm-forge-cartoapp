@@ -41,13 +41,16 @@ const DOM_TYPES = Object.fromEntries(
   ].map((name) => [name, { message: 'Translate DOM types in the adapter; use a type the domain or application owns.' }]),
 )
 
+// Libraries that need a browser: MapLibre needs WebGL, and ogc-client parses capabilities in a Web Worker.
+const BROWSER_LIBRARIES = ['maplibre-gl', 'maplibre-gl/*', '@camptocamp/ogc-client', '@camptocamp/ogc-client/*']
+
 const DOMAIN_IMPORTS = [
-  { group: ['vue', 'vue/*', 'maplibre-gl', 'maplibre-gl/*'], message: 'The domain is plain TypeScript.' },
+  { group: ['vue', 'vue/*', ...BROWSER_LIBRARIES], message: 'The domain is plain TypeScript.' },
   { group: ['**/application/**', '**/adapters/**', '**/components/**', '*.vue'], message: 'The domain depends on nothing outside itself.' },
 ]
 
 const APPLICATION_IMPORTS = [
-  { group: ['maplibre-gl', 'maplibre-gl/*'], message: 'Reach the map through a port the application owns.' },
+  { group: BROWSER_LIBRARIES, message: 'Reach the map and the WMS servers through a port the application owns.' },
   { group: ['**/adapters/**', '**/components/**', '*.vue'], message: 'The application depends on the domain only.' },
 ]
 
@@ -119,7 +122,7 @@ export default tseslint.config(
     files: ['src/components/**', 'src/*.vue', 'src/main.ts'],
     rules: {
       'no-restricted-imports': restrict([
-        { group: ['maplibre-gl', 'maplibre-gl/*'], message: 'Only the adapters touch MapLibre.' },
+        { group: BROWSER_LIBRARIES, message: 'Only the adapters touch MapLibre and ogc-client.' },
       ]),
     },
   },

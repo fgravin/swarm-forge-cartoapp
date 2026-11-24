@@ -1,4 +1,4 @@
-import type { Timer } from '../../src/application/searchPorts'
+import type { Timer } from '../../src/application/timerPort'
 
 /** A clock whose time passes only when a step says so. */
 export interface FakeClock {

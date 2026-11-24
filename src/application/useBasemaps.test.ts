@@ -44,6 +44,14 @@ describe('useBasemaps', () => {
     ])
   })
 
+  it('credits the selected basemap', () => {
+    const { credit, select } = useBasemaps()
+
+    expect(credit.value).toBe('© OpenStreetMap contributors © CARTO')
+    select('world-imagery')
+    expect(credit.value).toBe('Powered by Esri')
+  })
+
   it('selects the chosen basemap alone', () => {
     const { groups, select } = useBasemaps()
 

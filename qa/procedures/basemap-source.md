@@ -1,7 +1,8 @@
 # QA procedure: basemap source
 
-Feature: each basemap is drawn from the raster tiles of its provider, and the
-map credits that provider alone.
+Feature: each basemap is drawn from the raster tiles of its provider. While no
+layer of the "Couches" panel is shown, the map credits that provider alone
+(see `layer-attribution.md` for the credits of shown layers).
 
 Every step is done in the browser, on the built application. Requests to tile
 servers are answered locally by the test harness, which records their URLs, so
