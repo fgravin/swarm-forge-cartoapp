@@ -163,10 +163,11 @@ export const LAYER_STEPS: readonly StepHandler<World>[] = [
   step(/^the map draws the layer (\S+) from the GetMap tiles of (\S+)$/, (world, [name = '', service = '']) => {
     const layer = drawnLayer(world, name)
     const tiles = new URL(layer.tileUrl)
-    const announced = new URL(service)
+    const [serviceWithoutParameters = ''] = service.split('?')
     expect(tiles.protocol).toBe('https:')
-    expect(tiles.origin + tiles.pathname).toBe(announced.origin + announced.pathname)
-    expect(parametersOf(tiles)).toEqual({ ...parametersOf(announced), ...GETMAP_PARAMETERS, LAYERS: name, BBOX: '{bbox-epsg-3857}' })
+    // As the step writes it: an address read as a URL would match whatever the case of its scheme and host.
+    expect(tiles.origin + tiles.pathname).toBe(serviceWithoutParameters)
+    expect(parametersOf(tiles)).toEqual({ ...parametersOf(new URL(service)), ...GETMAP_PARAMETERS, LAYERS: name, BBOX: '{bbox-epsg-3857}' })
     expect(layer.tileUrl).toContain('BBOX={bbox-epsg-3857}')
     expect(layer.tileSize).toBe(256)
   }),
@@ -175,13 +176,17 @@ export const LAYER_STEPS: readonly StepHandler<World>[] = [
     expect(layerAt(world, position).opacityText).toBe(text)
   }),
 
-  step(
-    /^the user lowers the opacity of layer (\S+) by (\S+) steps, then raises it by (\S+) steps$/,
-    (world, [position = '', lower = '', raise = '']) => {
-      moveOpacity(world, position, -parseCount(lower, 'steps down'))
-      moveOpacity(world, position, parseCount(raise, 'steps up'))
-    },
-  ),
+  step(/^the user (lowers|raises) the opacity of layer (\S+) by (\S+) steps$/, (world, [move = '', position = '', steps = '']) => {
+    const direction = move === 'raises' ? 1 : -1
+    world.opacityAfterEachStep = Array.from({ length: parseCount(steps, 'steps') }, () => {
+      moveOpacity(world, position, direction)
+      return layerAt(world, position).opacityText
+    })
+  }),
+
+  step(/^the opacity reads (.+) after each step$/, (world, [texts = '']) => {
+    expect(world.opacityAfterEachStep).toEqual(list(texts))
+  }),
 
   step(/^the user has lowered the opacity of layer (\S+) by (\S+) steps$/, (world, [position = '', steps = '']) => {
     moveOpacity(world, position, -parseCount(steps, 'steps down'))

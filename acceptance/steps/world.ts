@@ -33,6 +33,8 @@ export interface World {
   foundPlaces: readonly string[]
   /** The position, from 1, of the layer of the panel a step named last. */
   notedLayer: number | undefined
+  /** What the opacity slider read after each step the user moved it in the last step that moved it. */
+  opacityAfterEachStep: readonly string[]
 }
 
 export function createWorld(): World {
@@ -60,5 +62,6 @@ export function createWorld(): World {
     activeAfterEachPress: [],
     foundPlaces: [],
     notedLayer: undefined,
+    opacityAfterEachStep: [],
   }
 }
