@@ -15,10 +15,10 @@ import {
   MAX_OPACITY,
   OPACITY_STEP,
   receiveDescription,
-  setOpacity as withOpacity,
+  setLayerOpacity,
   timeOut,
-  toggleLegend as withLegendToggled,
-  toggleShown as withShownToggled,
+  toggleLayerLegend,
+  toggleLayerShown,
   type Layer,
 } from '../domain/layerList'
 import { WMS_LAYERS } from '../domain/wmsLayers'
@@ -131,10 +131,10 @@ export function useLayers(services: LayerServices): LayersState & Connectable<La
   return {
     items: computed(() => layers.value.map(itemOf)),
     credits: computed(() => layerCredits(layers.value)),
-    toggleShown: (index) => update(withShownToggled(layers.value, index)),
+    toggleShown: (index) => update(toggleLayerShown(layers.value, index)),
     zoomTo,
-    setOpacity: (index, percent) => update(withOpacity(layers.value, index, percent)),
-    toggleLegend: (index) => update(withLegendToggled(layers.value, index)),
+    setOpacity: (index, percent) => update(setLayerOpacity(layers.value, index, percent)),
+    toggleLegend: (index) => update(toggleLayerLegend(layers.value, index)),
     legendFailed: (index) => update(failLegend(layers.value, index)),
     connect: (next) => {
       map = next

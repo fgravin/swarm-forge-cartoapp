@@ -108,12 +108,13 @@ export function layerStatus(layer: Layer): string | undefined {
   }
 }
 
-export function toggleShown(layers: readonly Layer[], index: number): readonly Layer[] {
+/** Shows the layer at `index`, or hides it, if it is available. */
+export function toggleLayerShown(layers: readonly Layer[], index: number): readonly Layer[] {
   return changeAvailableAt(layers, index, (layer) => ({ ...layer, shown: !layer.shown }))
 }
 
 /** Sets the opacity of the layer at `index`, shown or hidden, to the nearest multiple of 5 from 0 to 100. */
-export function setOpacity(layers: readonly Layer[], index: number, percent: number): readonly Layer[] {
+export function setLayerOpacity(layers: readonly Layer[], index: number, percent: number): readonly Layer[] {
   if (!Number.isFinite(percent)) return layers
   const opacity = Math.min(MAX_OPACITY, Math.max(0, Math.round(percent / OPACITY_STEP) * OPACITY_STEP))
   return changeAvailableAt(layers, index, (layer) => (layer.opacity === opacity ? layer : { ...layer, opacity }))
@@ -129,7 +130,8 @@ export function layerExtent(layer: Layer): Bbox | undefined {
   return layer.availability.kind === 'available' ? layer.availability.declared.extent : undefined
 }
 
-export function toggleLegend(layers: readonly Layer[], index: number): readonly Layer[] {
+/** Unfolds the legend of the layer at `index`, or folds it, if the layer is available. */
+export function toggleLayerLegend(layers: readonly Layer[], index: number): readonly Layer[] {
   return changeAvailableAt(layers, index, (layer) => ({ ...layer, legendUnfolded: !layer.legendUnfolded }))
 }
 

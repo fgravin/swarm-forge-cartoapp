@@ -11,10 +11,10 @@ import {
   layerTitle,
   legendView,
   receiveDescription,
-  setOpacity,
+  setLayerOpacity,
   timeOut,
-  toggleLegend,
-  toggleShown,
+  toggleLayerLegend,
+  toggleLayerShown,
   type Layer,
 } from './layerList'
 import type { DeclaredLayer, LayerDescription, WmsLayerSource } from './wmsLayers'
@@ -56,7 +56,7 @@ function at(layers: readonly Layer[], index: number): Layer {
 }
 
 function shown(layers: readonly Layer[], ...indexes: readonly number[]): readonly Layer[] {
-  return indexes.reduce((each, index) => toggleShown(each, index), layers)
+  return indexes.reduce((each, index) => toggleLayerShown(each, index), layers)
 }
 
 describe('initialLayers', () => {
@@ -147,27 +147,27 @@ describe('layerTitle and layerStatus', () => {
   })
 })
 
-describe('toggleShown', () => {
+describe('toggleLayerShown', () => {
   it('shows a hidden layer, and hides it again', () => {
-    const once = toggleShown(answered(), 1)
+    const once = toggleLayerShown(answered(), 1)
     expect(once.map((layer) => layer.shown)).toEqual([false, true, false])
-    expect(toggleShown(once, 1).map((layer) => layer.shown)).toEqual([false, false, false])
+    expect(toggleLayerShown(once, 1).map((layer) => layer.shown)).toEqual([false, false, false])
   })
 
   it('does nothing to a layer that is loading or unavailable', () => {
     const loading = initialLayers(SOURCES)
-    expect(toggleShown(loading, 0)).toBe(loading)
+    expect(toggleLayerShown(loading, 0)).toBe(loading)
     const unavailable = timeOut(loading)
-    expect(toggleShown(unavailable, 0)).toBe(unavailable)
+    expect(toggleLayerShown(unavailable, 0)).toBe(unavailable)
   })
 
   it('does nothing for a layer that is not listed', () => {
     const layers = answered()
-    expect(toggleShown(layers, 3)).toBe(layers)
+    expect(toggleLayerShown(layers, 3)).toBe(layers)
   })
 })
 
-describe('setOpacity', () => {
+describe('setLayerOpacity', () => {
   it.each([
     [35, 35],
     [0, 0],
@@ -177,25 +177,25 @@ describe('setOpacity', () => {
     [-5, 0],
     [105, 100],
   ])('sets an opacity of %s as %s %%: a multiple of 5 from 0 to 100', (percent, kept) => {
-    expect(at(setOpacity(answered(), 0, percent), 0).opacity).toBe(kept)
+    expect(at(setLayerOpacity(answered(), 0, percent), 0).opacity).toBe(kept)
   })
 
   it('sets the opacity of a hidden layer', () => {
-    const layer = at(setOpacity(answered(), 1, 50), 1)
+    const layer = at(setLayerOpacity(answered(), 1, 50), 1)
     expect(layer).toMatchObject({ shown: false, opacity: 50 })
   })
 
   it('keeps the opacity when the layer is hidden and shown again', () => {
-    const layers = toggleShown(toggleShown(setOpacity(shown(answered(), 2), 2, 40), 2), 2)
+    const layers = toggleLayerShown(toggleLayerShown(setLayerOpacity(shown(answered(), 2), 2, 40), 2), 2)
     expect(at(layers, 2)).toMatchObject({ shown: true, opacity: 40 })
   })
 
   it('does nothing to a layer that is not available, or with an opacity that is not a number', () => {
     const loading = initialLayers(SOURCES)
-    expect(setOpacity(loading, 0, 50)).toBe(loading)
+    expect(setLayerOpacity(loading, 0, 50)).toBe(loading)
     const layers = answered()
-    expect(setOpacity(layers, 0, Number.NaN)).toBe(layers)
-    expect(setOpacity(layers, 0, 100)).toBe(layers)
+    expect(setLayerOpacity(layers, 0, Number.NaN)).toBe(layers)
+    expect(setLayerOpacity(layers, 0, 100)).toBe(layers)
   })
 })
 
@@ -217,33 +217,37 @@ describe('layerExtent', () => {
   })
 })
 
-describe('toggleLegend, failLegend and legendView', () => {
+describe('toggleLayerLegend, failLegend and legendView', () => {
   it('folds every legend at first', () => {
     expect(answered().map(legendView)).toEqual([{ kind: 'folded' }, { kind: 'folded' }, { kind: 'folded' }])
   })
 
   it('unfolds the legend image the server declares, asked over HTTPS', () => {
-    expect(legendView(at(toggleLegend(answered(), 1), 1))).toEqual({ kind: 'image', url: 'https://legends.example/Two.png' })
+    expect(legendView(at(toggleLayerLegend(answered(), 1), 1))).toEqual({ kind: 'image', url: 'https://legends.example/Two.png' })
   })
 
   it('folds the legend again', () => {
-    expect(legendView(at(toggleLegend(toggleLegend(answered(), 1), 1), 1))).toEqual({ kind: 'folded' })
+    expect(legendView(at(toggleLayerLegend(toggleLayerLegend(answered(), 1), 1), 1))).toEqual({ kind: 'folded' })
   })
 
   it('says the legend is unavailable once its image failed to load, folded and unfolded again', () => {
-    const failed = failLegend(toggleLegend(answered(), 0), 0)
+    const failed = failLegend(toggleLayerLegend(answered(), 0), 0)
     expect(legendView(at(failed, 0))).toEqual({ kind: 'unavailable' })
-    expect(legendView(at(toggleLegend(toggleLegend(failed, 0), 0), 0))).toEqual({ kind: 'unavailable' })
+    expect(legendView(at(toggleLayerLegend(toggleLayerLegend(failed, 0), 0), 0))).toEqual({ kind: 'unavailable' })
   })
 
   it('says the legend is unavailable when the server declares none', () => {
     const layers = receiveDescription(initialLayers(SOURCES), 1, declared('Two', { legendUrl: undefined }))
-    expect(legendView(at(toggleLegend(layers, 1), 1))).toEqual({ kind: 'unavailable' })
+    expect(legendView(at(toggleLayerLegend(layers, 1), 1))).toEqual({ kind: 'unavailable' })
   })
 
   it('does not unfold the legend of a layer that is not available', () => {
     const loading = initialLayers(SOURCES)
-    expect(toggleLegend(loading, 0)).toBe(loading)
+    expect(toggleLayerLegend(loading, 0)).toBe(loading)
+  })
+
+  it('says the unfolded legend of a layer that is not available is unavailable', () => {
+    expect(legendView({ ...at(initialLayers(SOURCES), 0), legendUnfolded: true })).toEqual({ kind: 'unavailable' })
   })
 
   it('changes nothing when a legend that failed fails again', () => {
@@ -258,7 +262,7 @@ describe('drawnLayers', () => {
   })
 
   it('draws the shown layers in the order of the list, the first on top, at their opacity', () => {
-    const layers = setOpacity(shown(answered(), 2, 0), 2, 35)
+    const layers = setLayerOpacity(shown(answered(), 2, 0), 2, 35)
     expect(drawnLayers(layers)).toEqual([
       { id: 'one', tileUrl: expect.stringContaining('LAYERS=one'), tileSize: 256, opacity: 1, credit: 'Crédit One' },
       { id: 'three', tileUrl: expect.stringContaining('LAYERS=three'), tileSize: 256, opacity: 0.35, credit: 'Crédit Three' },
@@ -266,7 +270,7 @@ describe('drawnLayers', () => {
   })
 
   it('draws a layer whose server declares no credit with an empty credit', () => {
-    const layers = toggleShown(receiveDescription(initialLayers(SOURCES), 0, declared('One', { credit: undefined })), 0)
+    const layers = toggleLayerShown(receiveDescription(initialLayers(SOURCES), 0, declared('One', { credit: undefined })), 0)
     expect(drawnLayers(layers)[0]?.credit).toBe('')
   })
 })

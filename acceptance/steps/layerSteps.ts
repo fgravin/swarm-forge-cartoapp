@@ -23,20 +23,31 @@ function list(text: string): readonly string[] {
   return text.split(', ')
 }
 
-function indexOf(position: string): number {
-  return parsePosition(position, 'layer position') - 1
+/** The position, from 1, of a layer of the panel as a step names it. */
+function layerPosition(text: string): number {
+  return parsePosition(text, 'layer position')
 }
 
-function layerAt({ screen }: World, position: string): LayerItem {
-  const index = indexOf(position)
-  const item = screen.layers.items.value[index]
-  if (item === undefined) throw new Error(`the layer panel lists no layer ${index + 1}`)
+/** The index, from 0, of the layer a step names by its position. */
+function indexOf(position: string): number {
+  return layerPosition(position) - 1
+}
+
+/** The layer at `position`, from 1, which the panel must list. */
+function itemAt({ screen }: World, position: number): LayerItem {
+  const item = screen.layers.items.value[position - 1]
+  if (item === undefined) throw new Error(`the layer panel lists no layer ${position}`)
   return item
+}
+
+/** The layer a step names by its position. */
+function layerAt(world: World, position: string): LayerItem {
+  return itemAt(world, layerPosition(position))
 }
 
 function notedLayer(world: World): LayerItem {
   if (world.notedLayer === undefined) throw new Error('no layer was named in an earlier step')
-  return layerAt(world, String(world.notedLayer))
+  return itemAt(world, world.notedLayer)
 }
 
 function controlsDisabled(item: LayerItem): boolean | 'mixed' {
@@ -83,7 +94,7 @@ export const LAYER_STEPS: readonly StepHandler<World>[] = [
 
   step(/^layer (\S+) of the layer panel is (.+)$/, (world, [position = '', name]) => {
     expect(layerAt(world, position).title).toBe(name)
-    world.notedLayer = indexOf(position) + 1
+    world.notedLayer = layerPosition(position)
   }),
 
   step(/^its status reads (.+)$/, (world, [status]) => {
@@ -126,7 +137,7 @@ export const LAYER_STEPS: readonly StepHandler<World>[] = [
 
   step(/^the eye button of layer (\S+) is named (.+)$/, (world, [position = '', name]) => {
     expect(layerAt(world, position).eyeLabel).toBe(name)
-    world.notedLayer = indexOf(position) + 1
+    world.notedLayer = layerPosition(position)
   }),
 
   step(/^it is (.+)$/, (world, [state = '']) => {

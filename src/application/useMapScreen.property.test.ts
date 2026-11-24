@@ -20,7 +20,7 @@ import { useMapScreen, type MapScreen, type MapScreenServices } from './useMapSc
 
 // No place finder: the place search is disabled, and waits for nothing. The WMS
 // servers never answer: every layer stays loading, and none is drawn.
-const NO_PLACE_SEARCH: MapScreenServices = {
+const SILENT_SERVICES: MapScreenServices = {
   finder: undefined,
   wms: { describeLayer: () => new Promise(() => {}) },
   timer: { after: () => () => {} },
@@ -218,7 +218,7 @@ describe('useMapScreen', () => {
   it('draws the selected basemap and the bbox on the live map alone, follows only that map, and releases each map once', () => {
     fc.assert(
       fc.property(fc.array(actions, { maxLength: 60, size: 'max' }), (sequence) => {
-        const screen = useMapScreen(NO_PLACE_SEARCH)
+        const screen = useMapScreen(SILENT_SERVICES)
         const model: Model = {
           selected: INITIAL_BASEMAP,
           view: INITIAL_MAP_VIEW,
