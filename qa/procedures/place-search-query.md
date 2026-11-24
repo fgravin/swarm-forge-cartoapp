@@ -97,8 +97,8 @@ above, and every address search finds no address and answers `{}`.
 1. Open the application. Click the search field, type "Gre" and pause.
    Expect the suggestion list to be open.
 2. Press Backspace and pause.
-3. Expect the suggestion list to be closed, no option on the page, and no
-   search other than the one for "Gre".
+3. Expect the suggestion list to be closed, no option and no message on the
+   page, and no search other than the one for "Gre".
 
 ## place-search-query 4: a late answer to an earlier text is ignored
 

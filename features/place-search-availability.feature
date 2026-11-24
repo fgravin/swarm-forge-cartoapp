@@ -2,7 +2,8 @@
 Feature: Place search availability
   If GeoNames cannot answer a search, or refuses it, the search shows the
   message "Recherche indisponible" instead of suggestions. A later search
-  that GeoNames answers shows its suggestions again.
+  that GeoNames answers shows its suggestions again. The rest of the
+  application goes on working.
   GeoNames cannot answer when it cannot be reached, or when it answers with
   an HTTP error. It refuses a search by answering with HTTP 200 and a status
   other than 15, such as 10 (authentication) or 18, 19 and 20 (daily, hourly

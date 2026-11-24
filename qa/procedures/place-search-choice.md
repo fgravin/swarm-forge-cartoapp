@@ -63,14 +63,17 @@ Run the steps once for each row of the table. The places search for "Gre"
 finds Grenoble, Grésy-sur-Aix and Grèce, in this order, all of class P and
 code PPL.
 
-1. Open the application. Using only the keyboard, press Tab until the search
-   field has the focus. Type "Gre" and pause.
+1. Open the application. Note the text of the view indicator. Using only the
+   keyboard, press Tab until the search field has the focus. Type "Gre" and
+   pause.
 2. Press the down arrow as many times as "Down" says, then the up arrow as
    many times as "Up" says.
 3. Expect the search field to still have the focus, and the active suggestion
    to be the one the row names: named by `aria-activedescendant`, marked
    selected, and highlighted. Expect no other suggestion to be marked
    selected.
+4. Expect the view indicator to read the text noted at step 1: the arrow keys
+   moved through the suggestions, not the map.
 
 | Down | Up | Active        |
 |------|----|---------------|

@@ -12,6 +12,7 @@ Feature: Place search choice
   The up arrow makes the previous suggestion active, or the last one when
   the first one or none is active. Enter chooses nothing while no
   suggestion is active. Escape closes the suggestion list.
+  A closed suggestion list shows no suggestion and no message.
   A point on the map is written longitude, latitude. An extent is written
   west, south, east, north. An extent whose west is greater than its east
   crosses the 180° meridian: the map shows it across that meridian, and its

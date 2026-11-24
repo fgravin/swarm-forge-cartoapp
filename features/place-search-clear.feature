@@ -4,6 +4,7 @@ Feature: Place search clear
   list, without moving the map. It is offered only while the search field
   holds text. Once the search field is emptied, no search is made for what
   it held, and no answer to such a search is shown.
+  A closed suggestion list shows no suggestion and no message.
   To pause is to stop typing for one second. To search for a text is to type
   or erase characters until the search field holds that text, then pause.
   The application has started with a GeoNames username. Unless a step says
