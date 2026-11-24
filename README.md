@@ -16,7 +16,7 @@ features are specified, built, and verified by six agents (see `swarmforge/`).
 | `npm run coverage` | Unit tests with coverage, written to `coverage/lcov.info`. |
 | `npm run test:property` | Property tests (fast-check). |
 | `npm run acceptance` | Acceptance tests: parse `features/*.feature`, generate the entry points, run them. |
-| `npm run e2e` | End-to-end QA suite (Playwright, headless). `npm run e2e:headed` shows the browser. |
+| `npm run e2e` | End-to-end QA suite (Playwright, headless). It builds and serves the application with and without a GeoNames username, on ports 4173 to 4175 (`E2E_PORT` sets the first). `npm run e2e:headed` shows the browser. |
 | `npm run build` | Type-check and build for production. |
 
 Node 20.19 or later is required.
