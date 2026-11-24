@@ -2,7 +2,8 @@
 
 Feature: the "Couches" panel lists three WMS layers, in a fixed order, under
 the titles their servers declare. A layer reads "Chargement…" until its
-server answers, and "Couche indisponible" if its server cannot give it.
+server answers, and "Couche indisponible" if its server cannot give it or
+has not answered within 30 seconds.
 While a layer reads either, its controls are disabled. The other layers
 stay usable.
 
@@ -124,7 +125,20 @@ the answer of the row. The other servers give their recorded documents.
 | 2     | HTTP 200, a WMS `ServiceExceptionReport`                                                               |
 | 3     | HTTP 200, the recorded capabilities document of geo.admin.ch, without its layer                       |
 
-## layer-panel 6: the panel can be used with the keyboard alone
+## layer-panel 6: a layer whose server has not answered within 30 seconds is unavailable
+
+Hold geo.admin.ch's GetCapabilities answer until the end of the procedure.
+
+1. Open the application. Note the time at which the page starts loading.
+2. 25 seconds after that time, expect layer 3 to read "Chargement…".
+3. 32 seconds after that time, expect layer 3, listed as
+   `ch.bafu.schutzgebiete-paerke_nationaler_bedeutung`, to read "Couche
+   indisponible", and its four controls to be disabled.
+4. Let the held answer through. Wait two seconds. Expect layer 3 to still
+   read "Couche indisponible": a layer stays unavailable once it is.
+5. Expect the controls of layers 1 and 2 to be enabled.
+
+## layer-panel 7: the panel can be used with the keyboard alone
 
 This procedure has no Gherkin scenario: only the browser can show it.
 

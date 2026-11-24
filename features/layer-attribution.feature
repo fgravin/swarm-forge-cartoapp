@@ -3,7 +3,8 @@ Feature: Layer attribution
   The map credits the basemap, then the credit that the server of each shown
   layer declares for it (Attribution), in the order of the list. A hidden
   layer is not credited: while no layer is shown, the basemap alone is
-  credited. Credits are written separated by a comma and a space.
+  credited. A layer whose server declares no credit for it adds none.
+  Credits are written separated by a comma and a space.
   Layers 1, 2 and 3 are LANDCOVER.CLC18_FR, LITHO_1M_SIMPLIFIEE and
   ch.bafu.schutzgebiete-paerke_nationaler_bedeutung. Their servers answer at
   once and declare them with the credits Ministère de la Transition

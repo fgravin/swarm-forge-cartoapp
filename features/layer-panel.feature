@@ -9,10 +9,11 @@ Feature: Layer panel
   A layer is listed under the title its server declares for it, and under
   its WMS name until then, or if its server declares none.
   A layer reads "Chargement…" until its server has answered. It reads
-  "Couche indisponible" if its server does not answer, answers with an
-  error, or does not declare it. While a layer reads either, its controls
-  are disabled: its eye button, zoom button, opacity slider and legend
-  button. The other layers stay usable.
+  "Couche indisponible" if its server cannot be reached, answers with an
+  error, does not declare it, or has not answered within 30 seconds of the
+  start of the application; a layer stays unavailable once it is. While a
+  layer reads either, its controls are disabled: its eye button, zoom
+  button, opacity slider and legend button. The other layers stay usable.
   Unless a step says otherwise, each server answers at once and declares
   its layer with this title, extent and credit, a legend, and a GetMap
   service. An extent is written west, south, east, north.
@@ -77,6 +78,20 @@ Feature: Layer panel
 
     Examples:
       | layer_name                                        | failure               | position | shown_name                                        | status              | controls_state | other_controls_state |
-      | LANDCOVER.CLC18_FR                                | does not answer       | 1        | LANDCOVER.CLC18_FR                                | Couche indisponible | disabled       | enabled              |
+      | LANDCOVER.CLC18_FR                                | cannot be reached     | 1        | LANDCOVER.CLC18_FR                                | Couche indisponible | disabled       | enabled              |
       | LITHO_1M_SIMPLIFIEE                               | answers with an error | 2        | LITHO_1M_SIMPLIFIEE                               | Couche indisponible | disabled       | enabled              |
       | ch.bafu.schutzgebiete-paerke_nationaler_bedeutung | does not declare it   | 3        | ch.bafu.schutzgebiete-paerke_nationaler_bedeutung | Couche indisponible | disabled       | enabled              |
+
+  # layer-panel 6
+  Scenario Outline: layer-panel 6: a layer whose server has not answered within 30 seconds is unavailable
+    Given the server of <layer_name> never answers
+    When the user waits <timeout> milliseconds less one
+    Then layer <position> of the layer panel is <shown_name>
+    And its status reads <loading_status>
+    When the user waits one more millisecond
+    Then its status reads <unavailable_status>
+    And its controls are <controls_state>
+
+    Examples:
+      | layer_name                                        | timeout | position | shown_name                                        | loading_status | unavailable_status  | controls_state |
+      | ch.bafu.schutzgebiete-paerke_nationaler_bedeutung | 30000   | 3        | ch.bafu.schutzgebiete-paerke_nationaler_bedeutung | Chargement…    | Couche indisponible | disabled       |

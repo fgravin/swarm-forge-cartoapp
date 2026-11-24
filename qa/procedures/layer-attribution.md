@@ -41,3 +41,11 @@ Run the steps once for each layer.
 1. Open the application. Show layer 2.
 2. In the "Fonds de plan" panel, choose "World Imagery".
 3. Expect the credits to read "Powered by Esri", then "BRGM".
+
+## layer-attribution 5: a layer whose server declares no credit adds none
+
+This procedure has no Gherkin scenario. The BRGM's recorded capabilities
+document has no `Attribution` for its layer.
+
+1. Open the application. Show layer 2. Expect its tiles to be requested.
+2. Expect the credits to read "© OpenStreetMap contributors © CARTO" alone.
