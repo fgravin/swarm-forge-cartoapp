@@ -1,10 +1,15 @@
-import { WmsEndpoint, type WmsLayerFull } from '@camptocamp/ogc-client'
+import { setCacheExpiryDuration, WmsEndpoint, type WmsLayerFull } from '@camptocamp/ogc-client'
 
 import type { WmsCapabilities } from '../application/wmsPort'
 import type { Bbox } from '../domain/bbox'
 import type { LayerDescription } from '../domain/wmsLayers'
 
 const UNAVAILABLE: LayerDescription = { kind: 'unavailable' }
+
+// Ask the servers each time the application starts. ogc-client would keep their
+// capabilities for an hour in the browser's cache, and list a layer whose server
+// no longer answers as available.
+setCacheExpiryDuration(0)
 
 /** The extent in EPSG:4326, which ogc-client already orders west, south, east, north. */
 function extentOf(layer: WmsLayerFull): Bbox | undefined {
