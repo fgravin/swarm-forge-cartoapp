@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { browserTimer } from './adapters/browserTimer'
 import { fetchJson } from './adapters/fetchJson'
+import { ogcWmsCapabilities } from './adapters/ogcWmsCapabilities'
 import { useMapScreen } from './application/useMapScreen'
 import MapView from './components/MapView.vue'
 import PlaceSearch from './components/PlaceSearch.vue'
@@ -8,6 +9,7 @@ import PlaceSearch from './components/PlaceSearch.vue'
 const screen = useMapScreen({
   username: import.meta.env.VITE_GEONAMES_USERNAME,
   geonames: fetchJson,
+  wms: ogcWmsCapabilities,
   timer: browserTimer,
 })
 const search = screen.placeSearch

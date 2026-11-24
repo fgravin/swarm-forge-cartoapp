@@ -16,13 +16,14 @@ import {
 import { describeMapView, INITIAL_MAP_VIEW, type MapView } from '../domain/mapView'
 import { rasterTiles, type RasterTiles } from '../domain/rasterTiles'
 import type { MapPort } from './mapPort'
-import { useMapScreen, type MapScreen } from './useMapScreen'
-import type { PlaceSearchServices } from './usePlaceSearch'
+import { useMapScreen, type MapScreen, type MapScreenServices } from './useMapScreen'
 
-// No GeoNames username: the place search is disabled, and asks nothing.
-const NO_PLACE_SEARCH: PlaceSearchServices = {
+// No GeoNames username: the place search is disabled, and asks nothing. The WMS
+// servers never answer: every layer stays loading, and none is drawn.
+const NO_PLACE_SEARCH: MapScreenServices = {
   username: undefined,
   geonames: { getJson: () => Promise.reject(new Error('the place search is disabled')) },
+  wms: { describeLayer: () => new Promise(() => {}) },
   timer: { after: () => () => {} },
 }
 
@@ -88,6 +89,8 @@ function recordingMap(): RecordingMap {
         rectangleCount += 1
       },
       goTo: () => {},
+      showLayers: () => {},
+      showCredits: () => {},
       destroy: () => {
         destroyCount += 1
       },

@@ -1,5 +1,6 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
 import {
+  AttributionControl,
   MapLibreMap,
   NavigationControl,
   setWorkerUrl,
@@ -18,12 +19,14 @@ import type { DrawEvent, MapPointer } from '../domain/bboxCapture'
 import type { Destination } from '../domain/destination'
 import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
+import type { WmsTileLayer } from '../domain/wmsTiles'
 
 // One style for the life of the map: the basemap is a source and a layer swapped
 // under the overlays, so changing it keeps the view and everything drawn above.
 const EMPTY_STYLE: StyleSpecification = { version: 8, sources: {}, layers: [] }
 const BASEMAP = 'basemap'
 const RECTANGLES = 'rectangles'
+const RECTANGLES_BOTTOM = `${RECTANGLES}-fill`
 const RECTANGLE_COLOR = '#0369a1'
 // Styled in `src/style.css`: the crosshair cursor of the drawing mode.
 const DRAWING_CLASS = 'map-drawing'
@@ -41,6 +44,11 @@ function rectangleData(rectangles: readonly Bbox[]): GeoJsonData {
       geometry: { type: 'Polygon', coordinates: [bboxRing(bbox).map(({ lng, lat }) => [lng, lat])] },
     })),
   }
+}
+
+/** The id of the source and of the layer a WMS layer is drawn with. */
+function wmsLayerId(layer: WmsTileLayer): string {
+  return `wms-${layer.id}`
 }
 
 function pointerOfTouch(event: MapTouchEvent): MapPointer {
@@ -61,16 +69,19 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
     style: EMPTY_STYLE,
     center: [initialView.center.lng, initialView.center.lat],
     zoom: initialView.zoom,
-    // Credit the basemap alone: no default "MapLibre" entry beside its attribution.
-    attributionControl: {},
+    // The application writes the credits: see `showCredits`.
+    attributionControl: false,
   })
   map.addControl(new NavigationControl(), 'top-right')
+  let creditsControl = new AttributionControl()
+  map.addControl(creditsControl)
   const loaded = map.once('load')
   const overlaysAdded = loaded.then(addRectangleLayers)
   // The map handlers a drag in the drawing mode would set off.
   const competingHandlers = [map.dragPan, map.boxZoom, map.doubleClickZoom]
   const drawListeners = new Set<(event: DrawEvent) => void>()
   let drawingSubscriptions: readonly Subscription[] = []
+  let drawnLayerIds: readonly string[] = []
 
   function drawBasemap(basemap: RasterTiles): void {
     if (map.getLayer(BASEMAP)) map.removeLayer(BASEMAP)
@@ -88,7 +99,7 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
   function addRectangleLayers(): void {
     map.addSource(RECTANGLES, { type: 'geojson', data: rectangleData([]) })
     map.addLayer({
-      id: `${RECTANGLES}-fill`,
+      id: RECTANGLES_BOTTOM,
       type: 'fill',
       source: RECTANGLES,
       paint: { 'fill-color': RECTANGLE_COLOR, 'fill-opacity': 0.15 },
@@ -99,6 +110,37 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
       source: RECTANGLES,
       paint: { 'line-color': RECTANGLE_COLOR, 'line-width': 2 },
     })
+  }
+
+  function drawLayers(layers: readonly WmsTileLayer[]): void {
+    const ids = layers.map(wmsLayerId)
+    for (const id of drawnLayerIds.filter((drawn) => !ids.includes(drawn))) {
+      map.removeLayer(id)
+      map.removeSource(id)
+    }
+    for (const layer of layers) {
+      const id = wmsLayerId(layer)
+      if (drawnLayerIds.includes(id)) {
+        map.setPaintProperty(id, 'raster-opacity', layer.opacity)
+        continue
+      }
+      map.addSource(id, { type: 'raster', tiles: [layer.tileUrl], tileSize: layer.tileSize, attribution: layer.credit })
+      map.addLayer({ id, type: 'raster', source: id, paint: { 'raster-opacity': layer.opacity } }, RECTANGLES_BOTTOM)
+    }
+    // Stack the layers under the rectangles, the first one on top: move each one, from the last up, just under them.
+    for (const id of [...ids].reverse()) map.moveLayer(id, RECTANGLES_BOTTOM)
+    drawnLayerIds = ids
+  }
+
+  /**
+   * Shows `credits` as they are written. MapLibre sorts the attributions of the
+   * sources it draws by length, and leaves out those a longer one contains: as
+   * `credits` contains them all, it shows `credits` alone.
+   */
+  function showCredits(credits: string): void {
+    map.removeControl(creditsControl)
+    creditsControl = new AttributionControl({ customAttribution: credits })
+    map.addControl(creditsControl)
   }
 
   function report(event: DrawEvent): void {
@@ -205,6 +247,10 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
     showRectangles(rectangles) {
       void overlaysAdded.then(() => map.getSource<GeoJSONSource>(RECTANGLES)?.setData(rectangleData(rectangles)))
     },
+    showLayers(layers) {
+      void overlaysAdded.then(() => drawLayers(layers))
+    },
+    showCredits,
     goTo,
     destroy() {
       stopDrawing()

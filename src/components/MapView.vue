@@ -5,12 +5,15 @@ import { createMaplibreMap } from '../adapters/maplibreMap'
 import type { MapScreen } from '../application/useMapScreen'
 import BasemapPanel from './BasemapPanel.vue'
 import BboxPanel from './BboxPanel.vue'
+import LayerPanel from './LayerPanel.vue'
 
 const { screen } = defineProps<{ screen: MapScreen }>()
 const container = useTemplateRef<HTMLDivElement>('container')
 const { description } = screen.mapView
 const { groups, select } = screen.basemaps
 const { drawingMode, bboxText, canClear, toggleDrawing, clearBbox } = screen.bboxCapture
+const layers = screen.layers
+const { items } = layers
 
 onMounted(() => {
   if (container.value) screen.connect(createMaplibreMap(container.value, screen.mapView.view.value))
@@ -31,6 +34,18 @@ onBeforeUnmount(() => {
         :can-clear="canClear"
         @toggle-drawing="toggleDrawing"
         @clear="clearBbox"
+      />
+    </div>
+    <!-- Under the zoom buttons and above the credits; the panel scrolls when it is taller than the room left. -->
+    <div class="pointer-events-none absolute bottom-12 right-2 top-28 flex flex-col items-end">
+      <LayerPanel
+        class="pointer-events-auto max-h-full overflow-y-auto"
+        :items="items"
+        @toggle-shown="layers.toggleShown"
+        @zoom-to="layers.zoomTo"
+        @set-opacity="layers.setOpacity"
+        @toggle-legend="layers.toggleLegend"
+        @legend-failed="layers.legendFailed"
       />
     </div>
     <output

@@ -20,6 +20,8 @@ export interface BasemapGroup {
 /** What the basemap panel offers and does. */
 export interface BasemapsState {
   readonly groups: ComputedRef<readonly BasemapGroup[]>
+  /** The credit of the selected basemap. */
+  readonly credit: ComputedRef<string>
   select(id: BasemapId): void
 }
 
@@ -32,6 +34,7 @@ export function useBasemaps(): BasemapsState & Connectable<BasemapDisplay> {
       options: provider.basemaps.map(({ id, name }) => ({ id, name, selected: id === selected.value })),
     })),
   )
+  const credit = computed(() => BASEMAPS[selected.value].attribution)
   let display: BasemapDisplay | undefined
 
   function showSelected(): void {
@@ -53,5 +56,5 @@ export function useBasemaps(): BasemapsState & Connectable<BasemapDisplay> {
     display = undefined
   }
 
-  return { groups, select, connect, disconnect }
+  return { groups, credit, select, connect, disconnect }
 }
