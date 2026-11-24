@@ -6,9 +6,9 @@ import type { DrawEvent } from '../domain/bboxCapture'
 import type { Destination } from '../domain/destination'
 import { INITIAL_MAP_VIEW, type LngLat, type MapView } from '../domain/mapView'
 import { rasterTiles, type RasterTiles } from '../domain/rasterTiles'
+import type { WmsTileLayer } from '../domain/wmsTiles'
 import type { MapPort } from './mapPort'
-import { useMapScreen, type MapScreenState } from './useMapScreen'
-import type { PlaceSearchServices } from './usePlaceSearch'
+import { useMapScreen, type MapScreenServices, type MapScreenState } from './useMapScreen'
 
 function fakeMap() {
   const listeners = new Set<(view: MapView) => void>()
@@ -16,6 +16,8 @@ function fakeMap() {
   const drawn: RasterTiles[] = []
   const destinations: Destination[] = []
   let rectangles: readonly Bbox[] = []
+  let layers: readonly WmsTileLayer[] = []
+  let credits = ''
   let destroyCount = 0
   const port: MapPort = {
     onViewChange(listener) {
@@ -40,6 +42,12 @@ function fakeMap() {
     goTo(destination) {
       destinations.push(destination)
     },
+    showLayers(shown) {
+      layers = shown
+    },
+    showCredits(shown) {
+      credits = shown
+    },
     destroy() {
       destroyCount += 1
     },
@@ -48,6 +56,8 @@ function fakeMap() {
     port,
     drawn,
     destinations,
+    layers: () => layers.map((layer) => layer.id),
+    credits: () => credits,
     moveTo: (view: MapView) => listeners.forEach((listener) => listener(view)),
     drag(from: LngLat, to: LngLat) {
       const events: readonly DrawEvent[] = [
@@ -63,14 +73,20 @@ function fakeMap() {
 
 const GRENOBLE: Destination = { kind: 'view', view: { center: { lng: 5.71667, lat: 45.16667 }, zoom: 12 } }
 
-/** A finder that finds Grenoble at once, and a pause the test ends. */
-function placeSearch() {
+/** A finder that finds Grenoble at once, WMS servers declaring their layers at once, and a pause the test ends. */
+function fakeServices() {
   let endPause = (): void => {}
-  const services: PlaceSearchServices = {
+  const services: MapScreenServices = {
     finder: {
       find: async () => ({
         kind: 'found',
         suggestions: [{ name: 'Grenoble', kind: 'town', context: 'Isère, France', destination: GRENOBLE }],
+      }),
+    },
+    wms: {
+      describeLayer: async (_serverUrl, name) => ({
+        kind: 'declared',
+        layer: { title: name, extent: [5, 45, 6, 46], legendUrl: undefined, credit: `Crédit ${name}`, getMapUrl: undefined },
       }),
     },
     timer: {
@@ -105,7 +121,7 @@ const PARIS_BBOX: Bbox = [2.3, 48.8, 2.4, 48.9]
 
 describe('useMapScreen', () => {
   it('starts at the initial view, with Positron selected', () => {
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
 
     expect(screen.mapView.view.value).toEqual(INITIAL_MAP_VIEW)
     expect(screen.mapView.description.value).toBe('45.5646° N, 5.9178° E · zoom 5.0')
@@ -114,7 +130,7 @@ describe('useMapScreen', () => {
 
   it('shows the selected basemap on the connected map and follows its view', () => {
     const map = fakeMap()
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
 
     screen.connect(map.port)
     map.moveTo(BUENOS_AIRES)
@@ -125,7 +141,7 @@ describe('useMapScreen', () => {
 
   it('shows the basemap the user chooses on the connected map, keeping the view', () => {
     const map = fakeMap()
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
     screen.connect(map.port)
     map.moveTo(BUENOS_AIRES)
 
@@ -138,7 +154,7 @@ describe('useMapScreen', () => {
 
   it('captures the bbox the user draws on the connected map', () => {
     const map = fakeMap()
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
     screen.connect(map.port)
 
     screen.bboxCapture.toggleDrawing()
@@ -152,7 +168,7 @@ describe('useMapScreen', () => {
 
   it('keeps the bbox when the user moves the map or chooses another basemap', () => {
     const map = fakeMap()
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
     screen.connect(map.port)
     screen.bboxCapture.toggleDrawing()
     map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
@@ -166,7 +182,7 @@ describe('useMapScreen', () => {
 
   it('clears the bbox', () => {
     const map = fakeMap()
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
     screen.connect(map.port)
     screen.bboxCapture.toggleDrawing()
     map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
@@ -179,14 +195,14 @@ describe('useMapScreen', () => {
 
   it('moves the connected map to the place the user chooses, keeping the basemap and the bbox', async () => {
     const map = fakeMap()
-    const search = placeSearch()
-    const screen = useMapScreen(search.services)
+    const { services, searchFor } = fakeServices()
+    const screen = useMapScreen(services)
     screen.connect(map.port)
     screen.basemaps.select('world-imagery')
     screen.bboxCapture.toggleDrawing()
     map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
 
-    await search.searchFor(screen, 'Gre')
+    await searchFor(screen, 'Gre')
     screen.placeSearch.choose(0)
 
     expect(screen.placeSearch.text.value).toBe('Grenoble')
@@ -195,10 +211,38 @@ describe('useMapScreen', () => {
     expect(map.rectangles()).toEqual([PARIS_BBOX])
   })
 
+  it('draws the shown layers on the connected map, and credits them after the basemap', async () => {
+    const map = fakeMap()
+    const screen = useMapScreen(fakeServices().services)
+    screen.connect(map.port)
+    await new Promise((resolve) => setImmediate(resolve))
+
+    screen.layers.toggleShown(2)
+    screen.layers.toggleShown(1)
+
+    expect(map.layers()).toEqual(['LITHO_1M_SIMPLIFIEE', 'ch.bafu.schutzgebiete-paerke_nationaler_bedeutung'])
+    expect(map.credits()).toBe(
+      '© OpenStreetMap contributors © CARTO, Crédit LITHO_1M_SIMPLIFIEE, Crédit ch.bafu.schutzgebiete-paerke_nationaler_bedeutung',
+    )
+  })
+
+  it('keeps the shown layers when the user chooses another basemap, and credits the new one', async () => {
+    const map = fakeMap()
+    const screen = useMapScreen(fakeServices().services)
+    screen.connect(map.port)
+    await new Promise((resolve) => setImmediate(resolve))
+    screen.layers.toggleShown(1)
+
+    screen.basemaps.select('world-imagery')
+
+    expect(map.layers()).toEqual(['LITHO_1M_SIMPLIFIEE'])
+    expect(map.credits()).toBe('Powered by Esri, Crédit LITHO_1M_SIMPLIFIEE')
+  })
+
   it('releases the map when disconnected, and stops drawing on it, following it, and moving it', async () => {
     const map = fakeMap()
-    const search = placeSearch()
-    const screen = useMapScreen(search.services)
+    const { services, searchFor } = fakeServices()
+    const screen = useMapScreen(services)
     screen.connect(map.port)
 
     screen.disconnect()
@@ -206,20 +250,24 @@ describe('useMapScreen', () => {
     map.moveTo(BUENOS_AIRES)
     screen.bboxCapture.toggleDrawing()
     map.drag(PARIS_NORTH_EAST, PARIS_SOUTH_WEST)
-    await search.searchFor(screen, 'Gre')
+    await searchFor(screen, 'Gre')
     screen.placeSearch.choose(0)
+    screen.layers.toggleShown(0)
+    screen.layers.zoomTo(0)
 
     expect(map.destroyCount()).toBe(1)
     expect(map.drawn).toEqual([rasterTiles(BASEMAPS.positron)])
     expect(screen.mapView.view.value).toEqual(INITIAL_MAP_VIEW)
     expect(screen.bboxCapture.bboxText.value).toBe('Aucune emprise')
     expect(map.destinations).toEqual([])
+    expect(map.layers()).toEqual([])
+    expect(map.credits()).toBe('© OpenStreetMap contributors © CARTO')
   })
 
   it('releases the previous map when another one is connected, and draws the selected basemap on the new one', () => {
     const first = fakeMap()
     const second = fakeMap()
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
     screen.connect(first.port)
     screen.basemaps.select('dark-matter')
 
@@ -234,7 +282,7 @@ describe('useMapScreen', () => {
 
   it('releases a map only once', () => {
     const map = fakeMap()
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
     screen.connect(map.port)
 
     screen.disconnect()
@@ -244,7 +292,7 @@ describe('useMapScreen', () => {
   })
 
   it('does nothing when disconnected without a map', () => {
-    const screen = useMapScreen(placeSearch().services)
+    const screen = useMapScreen(fakeServices().services)
 
     expect(() => screen.disconnect()).not.toThrow()
     expect(screen.mapView.view.value).toEqual(INITIAL_MAP_VIEW)

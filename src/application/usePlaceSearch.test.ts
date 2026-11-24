@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import type { Destination } from '../domain/destination'
 import type { SearchAnswer, Suggestion } from '../domain/suggestions'
 import type { MapNavigation } from './mapPort'
-import type { PlaceFinder, Timer } from './searchPorts'
+import type { PlaceFinder } from './searchPorts'
+import type { Timer } from './timerPort'
 import { usePlaceSearch, type PlaceSearchState } from './usePlaceSearch'
 
 interface Scheduled {

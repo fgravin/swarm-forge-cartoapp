@@ -3,6 +3,7 @@ import type { DrawEvent } from '../domain/bboxCapture'
 import type { Destination } from '../domain/destination'
 import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
+import type { WmsTileLayer } from '../domain/wmsTiles'
 
 /** What the application needs from a map to show a basemap. */
 export interface BasemapDisplay {
@@ -37,6 +38,21 @@ export interface MapNavigation {
   goTo(destination: Destination): void
 }
 
+/** What the application needs from a map to draw WMS layers over its basemap. */
+export interface LayerDisplay {
+  /**
+   * Draws `layers` over the basemap and under the rectangles, the first one on
+   * top, in place of those drawn before. A layer drawn before keeps its tiles.
+   */
+  showLayers(layers: readonly WmsTileLayer[]): void
+}
+
+/** What the application needs from a map to credit what it draws. */
+export interface CreditDisplay {
+  /** Shows `credits` as the map's attribution, as they are written, in place of those shown before. */
+  showCredits(credits: string): void
+}
+
 /**
  * A part of the application that uses one `Port` at a time: from `connect`
  * until `disconnect`, or until another port is connected.
@@ -50,7 +66,8 @@ export interface Connectable<Port> {
  * What the application needs from a map. The MapLibre adapter implements it;
  * unit and acceptance tests replace it with a fake.
  */
-export interface MapPort extends BasemapDisplay, ViewSource, DrawingSurface, MapNavigation {
+export interface MapPort
+  extends BasemapDisplay, ViewSource, DrawingSurface, MapNavigation, LayerDisplay, CreditDisplay {
   /** Releases the map and everything it holds. */
   destroy(): void
 }

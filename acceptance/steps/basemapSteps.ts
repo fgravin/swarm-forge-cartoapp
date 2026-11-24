@@ -56,7 +56,7 @@ export const BASEMAP_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the map credits only (.+)$/, ({ map }, [attribution]) => {
-    expect(map.credits()).toEqual([attribution])
+    expect(map.credits()).toBe(attribution)
   }),
 
   step(/^every basemap was drawn from tiles of (\S+) pixels up to zoom level (\S+)$/, (world, [size = '', zoom = '']) => {
