@@ -15,8 +15,8 @@ function firstCharacters(text: string, count: number): string {
   return [...text].slice(0, count).join('')
 }
 
-/** `count` and `text` from "the first <count> characters of <text>", or `text` alone. */
-function textOf(count: string | undefined, text: string): string {
+/** The text a step names: `text`, or its first `count` characters for "the first <count> characters of <text>". */
+function namedText(count: string | undefined, text: string): string {
   return count === undefined ? text : firstCharacters(text, parseCount(count, 'character count'))
 }
 
@@ -53,16 +53,21 @@ function options({ screen }: World): readonly SuggestionOption[] {
   return screen.placeSearch.options.value
 }
 
-function optionAt(world: World, position: string): SuggestionOption {
-  const index = parsePosition(position, 'suggestion position') - 1
-  const option = options(world)[index]
-  if (option === undefined) throw new Error(`the suggestion list shows no suggestion ${index + 1}`)
+/** The position, from 1, of a suggestion as a step names it. */
+function suggestionPosition(text: string): number {
+  return parsePosition(text, 'suggestion position')
+}
+
+/** The suggestion at `position`, from 1, which the list must show. */
+function optionAt(world: World, position: number): SuggestionOption {
+  const option = options(world)[position - 1]
+  if (option === undefined) throw new Error(`the suggestion list shows no suggestion ${position}`)
   return option
 }
 
 function notedOption(world: World): SuggestionOption {
   if (world.notedSuggestion === undefined) throw new Error('no suggestion was named in an earlier step')
-  return optionAt(world, String(world.notedSuggestion))
+  return optionAt(world, world.notedSuggestion)
 }
 
 /** The list is open and shows suggestions named `names`, in this order, and no message. */
@@ -107,7 +112,7 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the user (?:has searched|searches) for (?:the first (\S+) characters of )?(.+)$/, async (world, [count, text = '']) => {
-    await editAndPause(world, textOf(count, text))
+    await editAndPause(world, namedText(count, text))
   }),
 
   step(/^the user pauses$/, async ({ clock }) => {
@@ -136,8 +141,10 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the user clicks suggestion (\S+)$/, (world, [position = '']) => {
-    optionAt(world, position)
-    world.screen.placeSearch.choose(parsePosition(position, 'suggestion position') - 1)
+    const clicked = suggestionPosition(position)
+    // Fails here when the list does not show it, rather than choosing nothing.
+    optionAt(world, clicked)
+    world.screen.placeSearch.choose(clicked - 1)
   }),
 
   step(/^the user clears the search$/, ({ screen }) => {
@@ -149,7 +156,7 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^the only search made is for (?:the first (\S+) characters of )?(.+)$/, (world, [count, text = '']) => {
-    expectSearches(world, [textOf(count, text)])
+    expectSearches(world, [namedText(count, text)])
   }),
 
   step(/^every search was made with the GeoNames username (.+)$/, ({ geonames }, [username]) => {
@@ -189,8 +196,9 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^suggestion (\S+) is (?!active$)(.+)$/, (world, [position = '', name]) => {
-    expect(optionAt(world, position).name).toBe(name)
-    world.notedSuggestion = parsePosition(position, 'suggestion position')
+    const named = suggestionPosition(position)
+    expect(optionAt(world, named).name).toBe(name)
+    world.notedSuggestion = named
   }),
 
   step(/^its (type|context) reads (.*)$/, (world, [part = '', text]) => {
@@ -199,7 +207,7 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(/^suggestion (\S+) is active$/, (world, [position = '']) => {
-    const active = optionAt(world, position)
+    const active = optionAt(world, suggestionPosition(position))
     expect(options(world).filter((option) => option.active)).toEqual([active])
     expect(world.screen.placeSearch.activeOptionId.value).toBe(active.id)
   }),

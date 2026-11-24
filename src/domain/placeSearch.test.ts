@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  chooseActive,
+  chooseActiveSuggestion,
   chooseSuggestion,
   clearSearch,
   closeResults,
@@ -152,14 +152,14 @@ describe('chooseSuggestion', () => {
   })
 })
 
-describe('chooseActive', () => {
+describe('chooseActiveSuggestion', () => {
   it('chooses the active suggestion', () => {
-    expect(chooseActive(withActive(2))).toEqual(chooseSuggestion(withActive(2), 2))
+    expect(chooseActiveSuggestion(withActive(2))).toEqual(chooseSuggestion(withActive(2), 2))
   })
 
   it('chooses nothing while no suggestion is active', () => {
-    expect(chooseActive(withActive(undefined))).toBeUndefined()
-    expect(chooseActive(INITIAL_PLACE_SEARCH)).toBeUndefined()
+    expect(chooseActiveSuggestion(withActive(undefined))).toBeUndefined()
+    expect(chooseActiveSuggestion(INITIAL_PLACE_SEARCH)).toBeUndefined()
   })
 })
 

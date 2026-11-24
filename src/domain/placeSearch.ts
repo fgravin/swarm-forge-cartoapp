@@ -114,7 +114,8 @@ export function chooseSuggestion(search: PlaceSearch, index: number): Choice | u
   return { search: { text: chosen.name, results: NONE }, destination: chosen.destination }
 }
 
-export function chooseActive(search: PlaceSearch): Choice | undefined {
+/** Chooses the active suggestion, as `chooseSuggestion` does, if one is active. */
+export function chooseActiveSuggestion(search: PlaceSearch): Choice | undefined {
   const { results } = search
   if (results.kind !== 'suggestions' || results.active === undefined) return undefined
   return chooseSuggestion(search, results.active)

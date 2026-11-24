@@ -1,5 +1,5 @@
 import type { JsonSource } from '../application/searchPorts'
-import type { JsonAnswer } from '../domain/geonames'
+import type { JsonAnswer } from '../domain/jsonAnswer'
 
 const FAILED: JsonAnswer = { kind: 'failed' }
 

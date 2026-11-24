@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Destination } from '../domain/destination'
-import type { JsonAnswer } from '../domain/geonames'
+import type { JsonAnswer } from '../domain/jsonAnswer'
 import type { MapNavigation } from './mapPort'
 import type { JsonSource, Timer } from './searchPorts'
 import { usePlaceSearch, type PlaceSearchState } from './usePlaceSearch'
@@ -62,6 +62,9 @@ function placesFound(...names: readonly string[]): JsonAnswer {
   return { kind: 'answered', body: { totalResultsCount: geonames.length, geonames } }
 }
 
+/** What GeoNames answers at once to each request. */
+type Answers = (service: string, text: string | null) => JsonAnswer
+
 /** GeoNames, answering each request when the test says so, or at once with `answers`. */
 function fakeGeoNames(answers?: Answers) {
   const requests: Request[] = []
@@ -95,8 +98,6 @@ function recordingNavigation() {
   const navigation: MapNavigation = { goTo: (destination) => destinations.push(destination) }
   return { navigation, destinations }
 }
-
-type Answers = (service: string, text: string | null) => JsonAnswer
 
 const atOnce: Answers = (_service, text) => placesFound(`${text} 1`, `${text} 2`, `${text} 3`)
 

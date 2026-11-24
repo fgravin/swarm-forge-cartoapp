@@ -1,4 +1,4 @@
-import type { JsonAnswer } from '../../src/domain/geonames'
+import type { JsonAnswer } from '../../src/domain/jsonAnswer'
 import { step, type StepHandler } from '../runtime'
 import {
   addressAnswer,

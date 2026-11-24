@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { geonamesRequests, geonamesUsername, readSearchAnswer, type JsonAnswer } from './geonames'
+import { geonamesRequests, geonamesUsername, readSearchAnswer } from './geonames'
+import type { JsonAnswer } from './jsonAnswer'
+import type { Suggestion } from './suggestions'
 
 function answered(body: unknown): JsonAnswer {
   return { kind: 'answered', body }
@@ -42,6 +44,11 @@ function places(...found: readonly unknown[]): JsonAnswer {
 function names(places: JsonAnswer, address: JsonAnswer = NO_ADDRESS): readonly string[] | 'unavailable' {
   const answer = readSearchAnswer(places, address)
   return answer.kind === 'found' ? answer.suggestions.map((suggestion) => suggestion.name) : answer.kind
+}
+
+function firstSuggestion(places: JsonAnswer, address: JsonAnswer = NO_ADDRESS): Suggestion | undefined {
+  const answer = readSearchAnswer(places, address)
+  return answer.kind === 'found' ? answer.suggestions[0] : undefined
 }
 
 describe('geonamesUsername', () => {
@@ -98,8 +105,7 @@ describe('readSearchAnswer', () => {
   })
 
   it('reads positions written as numbers too', () => {
-    const answer = readSearchAnswer(places({ ...GRENOBLE, lat: 45.16667, lng: 5.71667 }), NO_ADDRESS)
-    expect(answer.kind === 'found' && answer.suggestions[0]?.destination).toEqual({
+    expect(firstSuggestion(places({ ...GRENOBLE, lat: 45.16667, lng: 5.71667 }))?.destination).toEqual({
       kind: 'view',
       view: { center: { lng: 5.71667, lat: 45.16667 }, zoom: 12 },
     })
@@ -109,21 +115,18 @@ describe('readSearchAnswer', () => {
     ['numbers', { west: 4.74, south: 44.7, east: 6.36, north: 45.88, accuracyLevel: 0 }],
     ['strings', { west: '4.74', south: '44.70', east: '6.36', north: '45.88' }],
   ])('reads the extent of a place, written as %s', (_written, bbox) => {
-    const answer = readSearchAnswer(places({ ...GRENOBLE, bbox }), NO_ADDRESS)
-    expect(answer.kind === 'found' && answer.suggestions[0]?.destination).toEqual({
+    expect(firstSuggestion(places({ ...GRENOBLE, bbox }))?.destination).toEqual({
       kind: 'extent',
       extent: [4.74, 44.7, 6.36, 45.88],
     })
   })
 
   it('centres the map on a place whose extent cannot be read', () => {
-    const answer = readSearchAnswer(places({ ...GRENOBLE, bbox: { west: 4.74, south: 44.7, east: 6.36 } }), NO_ADDRESS)
-    expect(answer.kind === 'found' && answer.suggestions[0]?.destination.kind).toBe('view')
+    expect(firstSuggestion(places({ ...GRENOBLE, bbox: { west: 4.74, south: 44.7, east: 6.36 } }))?.destination.kind).toBe('view')
   })
 
   it('reads a place with no class, code, region or country', () => {
-    const answer = readSearchAnswer(places({ name: 'Somewhere', lat: '1', lng: '2' }), NO_ADDRESS)
-    expect(answer.kind === 'found' && answer.suggestions[0]).toMatchObject({ name: 'Somewhere', kind: 'place', context: '' })
+    expect(firstSuggestion(places({ name: 'Somewhere', lat: '1', lng: '2' }))).toMatchObject({ name: 'Somewhere', kind: 'place', context: '' })
   })
 
   it('leaves out a place it cannot name or put on the map', () => {
@@ -155,23 +158,22 @@ describe('readSearchAnswer', () => {
     ['US', 'États-Unis'],
     ['NL', 'Pays-Bas'],
   ])('names the country %s in French: %s', (countryCode, country) => {
-    const answer = readSearchAnswer(NO_PLACE, answered({ address: { ...SAINT_ANDRE, countryCode } }))
-    expect(answer.kind === 'found' && answer.suggestions[0]?.context).toBe(`Auvergne-Rhône-Alpes, ${country}`)
+    expect(firstSuggestion(NO_PLACE, answered({ address: { ...SAINT_ANDRE, countryCode } }))?.context).toBe(`Auvergne-Rhône-Alpes, ${country}`)
   })
 
   it('prefers the country name GeoNames gives to the one of its country code', () => {
-    const answer = readSearchAnswer(places({ ...GRENOBLE, countryName: 'Royaume-Uni', countryCode: 'GB' }), NO_ADDRESS)
-    expect(answer.kind === 'found' && answer.suggestions[0]?.context).toBe('Auvergne-Rhône-Alpes, Royaume-Uni')
+    expect(firstSuggestion(places({ ...GRENOBLE, countryName: 'Royaume-Uni', countryCode: 'GB' }))?.context).toBe('Auvergne-Rhône-Alpes, Royaume-Uni')
   })
 
   it('names the country of a place from its country code when GeoNames gives no country name', () => {
-    const answer = readSearchAnswer(places({ ...GRENOBLE, countryName: '' }), NO_ADDRESS)
-    expect(answer.kind === 'found' && answer.suggestions[0]?.context).toBe('Auvergne-Rhône-Alpes, France')
+    expect(firstSuggestion(places({ ...GRENOBLE, countryName: '' }))?.context).toBe('Auvergne-Rhône-Alpes, France')
   })
 
-  it('leaves out a country code it cannot name', () => {
-    const answer = readSearchAnswer(places({ ...GRENOBLE, countryName: '', countryCode: 'France' }), NO_ADDRESS)
-    expect(answer.kind === 'found' && answer.suggestions[0]?.context).toBe('Auvergne-Rhône-Alpes')
+  it.each([
+    ['not a country code', 'France'],
+    ['the code of no country', 'QQ'],
+  ])('leaves out a country code it cannot name: %s', (_case, countryCode) => {
+    expect(firstSuggestion(places({ ...GRENOBLE, countryName: '', countryCode }))?.context).toBe('Auvergne-Rhône-Alpes')
   })
 
   it('gives the address first, then the places', () => {

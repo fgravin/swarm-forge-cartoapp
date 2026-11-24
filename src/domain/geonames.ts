@@ -4,6 +4,7 @@
  * unknown JSON; they are narrowed here, and nowhere else.
  */
 import type { Bbox } from './bbox'
+import type { JsonAnswer } from './jsonAnswer'
 import type { LngLat } from './mapView'
 import {
   addressSuggestion,
@@ -13,9 +14,6 @@ import {
   type SearchAnswer,
   type Suggestion,
 } from './suggestions'
-
-/** What a web service answered: a JSON body, or nothing usable (no connection, an HTTP error, no JSON). */
-export type JsonAnswer = { readonly kind: 'answered'; readonly body: unknown } | { readonly kind: 'failed' }
 
 /** The two requests of a search: the places search and the address search. */
 export interface GeoNamesRequests {
@@ -34,6 +32,7 @@ export function geonamesUsername(configured: string | undefined): string | undef
   return configured === '' ? undefined : configured
 }
 
+/** The requests that search GeoNames for `text`, with the account `username`. */
 export function geonamesRequests(text: string, username: string): GeoNamesRequests {
   const places = new URLSearchParams({
     name_startsWith: text,

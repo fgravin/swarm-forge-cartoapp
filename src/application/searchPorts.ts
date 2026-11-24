@@ -1,4 +1,4 @@
-import type { JsonAnswer } from '../domain/geonames'
+import type { JsonAnswer } from '../domain/jsonAnswer'
 
 /** What the application needs to ask a web service. */
 export interface JsonSource {

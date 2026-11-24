@@ -2,7 +2,7 @@ import { computed, shallowRef, type ComputedRef } from 'vue'
 
 import { geonamesRequests, geonamesUsername, readSearchAnswer } from '../domain/geonames'
 import {
-  chooseActive as activeChoice,
+  chooseActiveSuggestion,
   chooseSuggestion,
   clearSearch,
   closeResults,
@@ -73,6 +73,18 @@ export const SUGGESTION_LIST_ID = 'place-suggestions'
 const SEARCH_HINT = 'Rechercher un lieu ou une adresse'
 const UNCONFIGURED_HINT = 'Recherche non configurée'
 
+/** The suggestions the list shows, none while it is closed. */
+function suggestionOptions({ results }: PlaceSearch): readonly SuggestionOption[] {
+  if (results.kind !== 'suggestions') return []
+  return results.suggestions.map(({ name, kind, context }, index) => ({
+    id: `${SUGGESTION_LIST_ID}-${index + 1}`,
+    name,
+    type: suggestionType(kind),
+    context,
+    active: index === results.active,
+  }))
+}
+
 /**
  * Searches GeoNames for what the user types, once the user stops typing, and
  * moves the connected map to the suggestion the user chooses.
@@ -80,17 +92,7 @@ const UNCONFIGURED_HINT = 'Recherche non configurée'
 export function usePlaceSearch(services: PlaceSearchServices): PlaceSearchState & Connectable<MapNavigation> {
   const username = geonamesUsername(services.username)
   const search = shallowRef<PlaceSearch>(INITIAL_PLACE_SEARCH)
-  const options = computed(() => {
-    const { results } = search.value
-    if (results.kind !== 'suggestions') return []
-    return results.suggestions.map(({ name, kind, context }, index) => ({
-      id: `${SUGGESTION_LIST_ID}-${index + 1}`,
-      name,
-      type: suggestionType(kind),
-      context,
-      active: index === results.active,
-    }))
-  })
+  const options = computed(() => suggestionOptions(search.value))
   let navigation: MapNavigation | undefined
   let cancelPause: (() => void) | undefined
 
@@ -144,7 +146,7 @@ export function usePlaceSearch(services: PlaceSearchServices): PlaceSearchState 
     previous: () => {
       search.value = moveActive(search.value, 'previous')
     },
-    chooseActive: () => choose(activeChoice(search.value)),
+    chooseActive: () => choose(chooseActiveSuggestion(search.value)),
     choose: (index) => choose(chooseSuggestion(search.value, index)),
     close: () => {
       stopPause()

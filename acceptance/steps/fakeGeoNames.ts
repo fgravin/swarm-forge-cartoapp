@@ -1,6 +1,6 @@
 import type { JsonSource } from '../../src/application/searchPorts'
 import type { Bbox } from '../../src/domain/bbox'
-import type { JsonAnswer } from '../../src/domain/geonames'
+import type { JsonAnswer } from '../../src/domain/jsonAnswer'
 import type { LngLat } from '../../src/domain/mapView'
 import { settle } from './fakeClock'
 
