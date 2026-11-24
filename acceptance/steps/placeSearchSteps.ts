@@ -65,6 +65,18 @@ function optionAt(world: World, position: number): SuggestionOption {
   return option
 }
 
+/**
+ * The position, from 1, of the active suggestion, or undefined while none is.
+ * Fails unless the search field names the one suggestion marked active.
+ */
+function activePosition(world: World): number | undefined {
+  const shown = options(world)
+  const active = shown.filter((option) => option.active)
+  expect(active.length).toBeLessThanOrEqual(1)
+  expect(world.screen.placeSearch.activeOptionId.value).toBe(active[0]?.id)
+  return active[0] === undefined ? undefined : shown.indexOf(active[0]) + 1
+}
+
 function notedOption(world: World): SuggestionOption {
   if (world.notedSuggestion === undefined) throw new Error('no suggestion was named in an earlier step')
   return optionAt(world, world.notedSuggestion)
@@ -127,10 +139,13 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
     await clock.pass(1)
   }),
 
-  step(/^the user presses the (down|up) arrow (?:(\S+) times|once) in the search field$/, ({ screen }, [arrow = '', count]) => {
-    const press = arrow === 'down' ? screen.placeSearch.next : screen.placeSearch.previous
-    const presses = count === undefined ? 1 : parseCount(count, 'press count')
-    for (let pressed = 0; pressed < presses; pressed += 1) press()
+  step(/^the user presses the (down|up) arrow (\S+) times in the search field$/, (world, [arrow = '', count = '']) => {
+    const { placeSearch } = world.screen
+    const press = arrow === 'down' ? placeSearch.next : placeSearch.previous
+    world.activeAfterEachPress = Array.from({ length: parseCount(count, 'press count') }, () => {
+      press()
+      return activePosition(world)
+    })
   }),
 
   step(/^the user presses Enter in the search field$/, ({ screen }) => {
@@ -196,7 +211,7 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
     expect(screen.placeSearch.expanded.value).toBe(false)
   }),
 
-  step(/^suggestion (\S+) is (?!active$)(.+)$/, (world, [position = '', name]) => {
+  step(/^suggestion (\S+) is (.+)$/, (world, [position = '', name]) => {
     const named = suggestionPosition(position)
     expect(optionAt(world, named).name).toBe(name)
     world.notedSuggestion = named
@@ -207,10 +222,8 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
     expect(part === 'type' ? option.type : option.context).toBe(text)
   }),
 
-  step(/^suggestion (\S+) is active$/, (world, [position = '']) => {
-    const active = optionAt(world, suggestionPosition(position))
-    expect(options(world).filter((option) => option.active)).toEqual([active])
-    expect(world.screen.placeSearch.activeOptionId.value).toBe(active.id)
+  step(/^the suggestions active after each press are (.+)$/, (world, [positions = '']) => {
+    expect(world.activeAfterEachPress).toEqual(positions.split(', ').map(suggestionPosition))
   }),
 
   step(/^the search field reads (.+)$/, (world, [text]) => {
