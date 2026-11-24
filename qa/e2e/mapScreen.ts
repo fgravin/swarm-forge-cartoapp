@@ -51,12 +51,20 @@ export interface OpenApplication {
   readonly requested: readonly string[]
 }
 
+/**
+ * Opens the application at `at` and waits until the map asks for tiles:
+ * `requested` grows with the requests `serveTilesLocally` answers.
+ */
+export async function goToMap(page: Page, requested: readonly string[], at = '/'): Promise<MapScreen> {
+  await page.goto(at)
+  await expect.poll(() => requested.length).toBeGreaterThan(0)
+  return mapScreen(page)
+}
+
 /** Opens the application with its tile requests answered locally, and waits until the map asks for tiles. */
 export async function openApplication(page: Page): Promise<OpenApplication> {
   const requested = await serveTilesLocally(page)
-  await page.goto('/')
-  await expect.poll(() => requested.length).toBeGreaterThan(0)
-  return { screen: mapScreen(page), requested }
+  return { screen: await goToMap(page, requested), requested }
 }
 
 /** Expects `selected` to be the only checked basemap. */

@@ -24,6 +24,11 @@ export interface World {
   typingGoal: string | undefined
   /** The position, from 1, of the suggestion a step named last. */
   notedSuggestion: number | undefined
+  /**
+   * After each arrow key the user pressed in the last step that pressed one,
+   * the position, from 1, of the active suggestion, or undefined while none is.
+   */
+  activeAfterEachPress: readonly (number | undefined)[]
   /** The names of the places GeoNames finds, as a step gave them. */
   foundPlaces: readonly string[]
   /** The position, from 1, of the layer of the panel a step named last. */
@@ -52,6 +57,7 @@ export function createWorld(): World {
     notedBbox: undefined,
     typingGoal: undefined,
     notedSuggestion: undefined,
+    activeAfterEachPress: [],
     foundPlaces: [],
     notedLayer: undefined,
   }

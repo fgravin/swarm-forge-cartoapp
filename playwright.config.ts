@@ -1,8 +1,15 @@
 import { defineConfig, devices } from '@playwright/test'
 
+import { CONFIGURED, SERVED_BUILDS, type ServedBuild } from './qa/e2e/servers'
+
 // End-to-end QA suite: `npm run e2e`. It drives the built application through
 // the browser only. QA owns `qa/e2e`.
-const port = Number(process.env.E2E_PORT ?? 4173)
+
+/** Builds and serves `served` with its GeoNames username, or with none. */
+function serveCommand({ port, username }: ServedBuild): string {
+  const usernameArgument = username === undefined ? '' : ` ${JSON.stringify(username)}`
+  return `npx tsx qa/e2e/serveBuild.ts ${port}${usernameArgument}`
+}
 
 export default defineConfig({
   testDir: 'qa/e2e',
@@ -10,7 +17,7 @@ export default defineConfig({
   forbidOnly: true,
   reporter: [['list']],
   use: {
-    baseURL: `http://127.0.0.1:${port}`,
+    baseURL: CONFIGURED.url,
     trace: 'retain-on-failure',
   },
   projects: [
@@ -23,10 +30,10 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${port} --strictPort`,
-    url: `http://127.0.0.1:${port}`,
+  webServer: SERVED_BUILDS.map((served) => ({
+    command: serveCommand(served),
+    url: served.url,
     reuseExistingServer: false,
     timeout: 120_000,
-  },
+  })),
 })
