@@ -46,7 +46,7 @@ const field = computed({ get: () => props.text, set: (text: string) => emit('typ
         @keydown.down.prevent="emit('next')"
         @keydown.up.prevent="emit('previous')"
         @keydown.enter.prevent="emit('chooseActive')"
-        @keydown.esc="emit('close')"
+        @keydown.esc.stop="emit('close')"
       />
       <button
         v-if="canClear"

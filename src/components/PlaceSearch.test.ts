@@ -99,6 +99,24 @@ describe('PlaceSearch', () => {
     ])
   })
 
+  it('keeps Escape pressed in the field to itself, away from the drawing mode of the map', async () => {
+    const heard: string[] = []
+    const hear = (event: KeyboardEvent): void => {
+      heard.push(event.key)
+    }
+    window.addEventListener('keydown', hear)
+    const search = mount(PlaceSearch, { props: SUGGESTIONS, attachTo: document.body })
+
+    await search.find('input').trigger('keydown', { key: 'Escape' })
+    await search.find('input').trigger('keydown', { key: 'ArrowDown' })
+    const closed = search.emitted('close')
+    window.removeEventListener('keydown', hear)
+    search.unmount()
+
+    expect(closed).toEqual([[]])
+    expect(heard).toEqual(['ArrowDown'])
+  })
+
   it('chooses the suggestion clicked', async () => {
     const search = mount(PlaceSearch, { props: SUGGESTIONS })
 

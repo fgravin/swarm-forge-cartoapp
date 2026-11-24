@@ -1,6 +1,7 @@
 /**
  * The GeoNames web services the place search asks: the requests for a text,
- * and what their JSON answers mean. Their answers enter the program here.
+ * and what their JSON answers mean. The adapter hands their bodies on as
+ * unknown JSON; they are narrowed here, and nowhere else.
  */
 import type { Bbox } from './bbox'
 import type { LngLat } from './mapView'
