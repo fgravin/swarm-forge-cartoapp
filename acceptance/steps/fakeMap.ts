@@ -1,6 +1,7 @@
 import type { MapPort } from '../../src/application/mapPort'
 import type { Bbox } from '../../src/domain/bbox'
 import type { DrawEvent, MapPointer, ScreenPoint } from '../../src/domain/bboxCapture'
+import type { Destination } from '../../src/domain/destination'
 import type { RasterTiles } from '../../src/domain/rasterTiles'
 import type { LngLat, MapView } from '../../src/domain/mapView'
 
@@ -23,6 +24,8 @@ export interface FakeMap {
   pointerAtPoint(point: ScreenPoint): MapPointer
   /** The user presses, moves, or releases the pointer on the map, or presses Escape, while the drawing mode is on. */
   draw(event: DrawEvent): void
+  /** Every destination the application has moved the map to, in order. */
+  destinations(): readonly Destination[]
 }
 
 /**
@@ -35,6 +38,7 @@ export function createFakeMap(): FakeMap {
   const viewListeners = new Set<(view: MapView) => void>()
   const drawListeners = new Set<(event: DrawEvent) => void>()
   const drawn: RasterTiles[] = []
+  const destinations: Destination[] = []
   let drawingMode = false
   let rectangles: readonly Bbox[] = []
   const port: MapPort = {
@@ -58,6 +62,9 @@ export function createFakeMap(): FakeMap {
     },
     showRectangles(shown) {
       rectangles = shown
+    },
+    goTo(destination) {
+      destinations.push(destination)
     },
     destroy() {
       viewListeners.clear()
@@ -83,5 +90,6 @@ export function createFakeMap(): FakeMap {
       // The map reports what the user does with the pointer only in the drawing mode.
       if (drawingMode) drawListeners.forEach((listener) => listener(event))
     },
+    destinations: () => destinations,
   }
 }

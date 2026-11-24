@@ -1,5 +1,6 @@
 import type { Bbox } from '../domain/bbox'
 import type { DrawEvent } from '../domain/bboxCapture'
+import type { Destination } from '../domain/destination'
 import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
 
@@ -30,6 +31,12 @@ export interface DrawingSurface {
   showRectangles(rectangles: readonly Bbox[]): void
 }
 
+/** What the application needs from a map to move it to a place. */
+export interface MapNavigation {
+  /** Moves the map to show `destination`: its extent, or its view. */
+  goTo(destination: Destination): void
+}
+
 /**
  * A part of the application that uses one `Port` at a time: from `connect`
  * until `disconnect`, or until another port is connected.
@@ -43,7 +50,7 @@ export interface Connectable<Port> {
  * What the application needs from a map. The MapLibre adapter implements it;
  * unit and acceptance tests replace it with a fake.
  */
-export interface MapPort extends BasemapDisplay, ViewSource, DrawingSurface {
+export interface MapPort extends BasemapDisplay, ViewSource, DrawingSurface, MapNavigation {
   /** Releases the map and everything it holds. */
   destroy(): void
 }

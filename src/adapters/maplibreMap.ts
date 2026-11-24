@@ -15,6 +15,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import type { MapPort } from '../application/mapPort'
 import { bboxRing, type Bbox } from '../domain/bbox'
 import type { DrawEvent, MapPointer } from '../domain/bboxCapture'
+import type { Destination } from '../domain/destination'
 import type { RasterTiles } from '../domain/rasterTiles'
 import type { MapView } from '../domain/mapView'
 
@@ -26,6 +27,8 @@ const RECTANGLES = 'rectangles'
 const RECTANGLE_COLOR = '#0369a1'
 // Styled in `src/style.css`: the crosshair cursor of the drawing mode.
 const DRAWING_CLASS = 'map-drawing'
+// The margin, in pixels, left round an extent the map shows.
+const EXTENT_PADDING = 40
 
 type GeoJsonData = Parameters<GeoJSONSource['setData']>[0]
 
@@ -140,6 +143,31 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
     window.addEventListener('keydown', reportEscape)
   }
 
+  function goTo(destination: Destination): void {
+    switch (destination.kind) {
+      case 'extent': {
+        const [west, south, east, north] = destination.extent
+        map.fitBounds(
+          [
+            [west, south],
+            [east, north],
+          ],
+          { padding: EXTENT_PADDING },
+        )
+        return
+      }
+      case 'view': {
+        const { center, zoom } = destination.view
+        map.flyTo({ center: [center.lng, center.lat], zoom })
+        return
+      }
+      default: {
+        const unknown: never = destination
+        throw new Error(`unknown destination ${JSON.stringify(unknown)}`)
+      }
+    }
+  }
+
   function stopDrawing(): void {
     drawingSubscriptions.forEach((subscription) => subscription.unsubscribe())
     drawingSubscriptions = []
@@ -177,6 +205,7 @@ export function createMaplibreMap(container: HTMLElement, initialView: MapView):
     showRectangles(rectangles) {
       void overlaysAdded.then(() => map.getSource<GeoJSONSource>(RECTANGLES)?.setData(rectangleData(rectangles)))
     },
+    goTo,
     destroy() {
       stopDrawing()
       drawListeners.clear()

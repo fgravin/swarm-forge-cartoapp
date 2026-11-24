@@ -10,6 +10,9 @@ test-results/
 *.tsbuildinfo
 .DS_Store
 .env
+# Where a developer writes VITE_GEONAMES_USERNAME: never committed.
+.env.local
+.env.*.local
 .claude/
 .swarmforge/
 .worktrees/
