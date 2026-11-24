@@ -1,3 +1,8 @@
+# mutation-stamp: sha256=410b0b2ac7f427a69b788a099e9bf2a29b0d5b9c326efdf69fafe6a8a081b003
+# acceptance-mutation-manifest-begin
+# {"version":1,"tested_at":"2026-11-24T10:35:24.217888942Z","feature_name":"Place search choice","feature_path":"features/place-search-choice.feature","background_hash":"e5bed71706d72c3c3e3c34780b7efb78f6b18cc2828695d5e5876656d395d975","implementation_hash":"sha256:2ad98c767e0aa4f22aede3b149753596f13ae97c701a6efc65e789d5d66816e9","scenarios":[{"index":3,"name":"place-search-choice 4: the arrow keys move the active suggestion round the list","scenario_hash":"dfbc5b3087085c3c570735b550fc4ece6148dc77b6701e050cfe7367ff6a351d","mutation_count":10,"result":{"Total":10,"Killed":10,"Survived":0,"Errors":0},"tested_at":"2026-11-24T10:35:24.217888942Z"},{"index":4,"name":"place-search-choice 5: Enter chooses the active suggestion","scenario_hash":"7bd70dfa7ee64134871b409b0f23940366683b8a6619d1792838fa2578d718c9","mutation_count":1,"result":{"Total":1,"Killed":1,"Survived":0,"Errors":0},"tested_at":"2026-11-24T10:35:24.217888942Z"},{"index":0,"name":"place-search-choice 1: choosing a suggestion without an extent centres the map on it","scenario_hash":"d846b288e62c61457cf180363b8f7126c8fac9ec8b1d1767f1d6b6e8dda0f11c","mutation_count":8,"result":{"Total":8,"Killed":8,"Survived":0,"Errors":0},"tested_at":"2026-11-24T10:29:41.567008182Z"},{"index":1,"name":"place-search-choice 2: choosing a suggestion with an extent shows that extent","scenario_hash":"f1787f2a2f2422c547f3a33fea25c06a7fc9154ab73fd4a8db1ab229e47704d0","mutation_count":8,"result":{"Total":8,"Killed":8,"Survived":0,"Errors":0},"tested_at":"2026-11-24T10:29:41.567008182Z"},{"index":2,"name":"place-search-choice 3: a chosen suggestion fills the search field and closes the list","scenario_hash":"556ec37c66811cfc2e3a680ee4412cdf47937273e03b5922a4e456c8b6b3ff6c","mutation_count":2,"result":{"Total":2,"Killed":2,"Survived":0,"Errors":0},"tested_at":"2026-11-24T10:29:41.567008182Z"},{"index":5,"name":"place-search-choice 6: Enter chooses nothing while no suggestion is active","scenario_hash":"c4eba8d510c0414eec9459b2426e048bac883cf23754637fb3e967d62f6de305","mutation_count":3,"result":{"Total":3,"Killed":3,"Survived":0,"Errors":0},"tested_at":"2026-11-24T10:29:41.567008182Z"},{"index":6,"name":"place-search-choice 7: Escape closes the suggestion list","scenario_hash":"dd472ee0ad7248c5fb1db6a8145511e6fe288f2c9fd25c114fbd117884feaf55","mutation_count":1,"result":{"Total":1,"Killed":1,"Survived":0,"Errors":0},"tested_at":"2026-11-24T10:29:41.567008182Z"},{"index":7,"name":"place-search-choice 8: choosing a suggestion keeps the basemap and the bbox","scenario_hash":"ba7d99af1eb577d650ad49a0397e1523dca6c36960cd7985983e645c9be478d0","mutation_count":1,"result":{"Total":1,"Killed":1,"Survived":0,"Errors":0},"tested_at":"2026-11-24T10:29:41.567008182Z"}]}
+# acceptance-mutation-manifest-end
+
 # place-search-choice
 Feature: Place search choice
   Choosing a suggestion moves the map to it. If GeoNames gives the
@@ -71,33 +76,36 @@ Feature: Place search choice
 
   # place-search-choice 4
   Scenario Outline: place-search-choice 4: the arrow keys move the active suggestion round the list
-    Given GeoNames finds <count> places
+    Given GeoNames finds 3 places
     When the user searches for Gre
-    And the user presses the down arrow <down_presses> times in the search field
-    And the user presses the up arrow <up_presses> times in the search field
-    Then suggestion <active> is active
+    And the user presses the <arrow> arrow once in the search field
+    Then suggestion <active_after_1_press> is active
+    When the user presses the <arrow> arrow once in the search field
+    Then suggestion <active_after_2_presses> is active
+    When the user presses the <arrow> arrow once in the search field
+    Then suggestion <active_after_3_presses> is active
+    When the user presses the <arrow> arrow once in the search field
+    Then suggestion <active_after_4_presses> is active
 
+    # Each row presses one arrow round the whole list of 3, from no active
+    # suggestion back to the one it made active first.
     Examples:
-      | count | down_presses | up_presses | active |
-      | 3     | 1            | 0          | 1      |
-      | 3     | 3            | 0          | 3      |
-      | 3     | 4            | 0          | 1      |
-      | 3     | 0            | 1          | 3      |
-      | 3     | 2            | 1          | 1      |
-      | 3     | 1            | 1          | 3      |
+      | arrow | active_after_1_press | active_after_2_presses | active_after_3_presses | active_after_4_presses |
+      | down  | 1                    | 2                      | 3                      | 1                      |
+      | up    | 3                    | 2                      | 1                      | 3                      |
 
   # place-search-choice 5
   Scenario Outline: place-search-choice 5: Enter chooses the active suggestion
-    Given GeoNames finds the places <names>
+    Given GeoNames finds the places Grenoble, Grésy-sur-Aix, Grèce
     When the user searches for Gre
-    And the user presses the down arrow <down_presses> times in the search field
+    And the user presses the down arrow 2 times in the search field
     And the user presses Enter in the search field
     Then the search field reads <field_text>
     And the suggestion list is closed
 
     Examples:
-      | names                          | down_presses | field_text    |
-      | Grenoble, Grésy-sur-Aix, Grèce | 2            | Grésy-sur-Aix |
+      | field_text    |
+      | Grésy-sur-Aix |
 
   # place-search-choice 6
   Scenario Outline: place-search-choice 6: Enter chooses nothing while no suggestion is active

@@ -127,9 +127,10 @@ export const PLACE_SEARCH_STEPS: readonly StepHandler<World>[] = [
     await clock.pass(1)
   }),
 
-  step(/^the user presses the (down|up) arrow (\S+) times in the search field$/, ({ screen }, [arrow = '', count = '']) => {
+  step(/^the user presses the (down|up) arrow (?:(\S+) times|once) in the search field$/, ({ screen }, [arrow = '', count]) => {
     const press = arrow === 'down' ? screen.placeSearch.next : screen.placeSearch.previous
-    for (let pressed = 0; pressed < parseCount(count, 'press count'); pressed += 1) press()
+    const presses = count === undefined ? 1 : parseCount(count, 'press count')
+    for (let pressed = 0; pressed < presses; pressed += 1) press()
   }),
 
   step(/^the user presses Enter in the search field$/, ({ screen }) => {

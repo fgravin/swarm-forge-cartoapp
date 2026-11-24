@@ -57,6 +57,17 @@ function place(name: string, details: Partial<PlaceRecord> = {}): PlaceRecord {
   }
 }
 
+/**
+ * The feature of a place a step gives by what decides its type: its class,
+ * with a code that does not start with PCL; its code, with the class A of
+ * countries; or, with neither, a class other than A and P.
+ */
+function feature(featureClass: string | undefined, featureCode: string | undefined): Pick<PlaceRecord, 'featureClass' | 'featureCode'> {
+  if (featureClass !== undefined) return { featureClass, featureCode: 'PPL' }
+  if (featureCode !== undefined) return { featureClass: 'A', featureCode }
+  return { featureClass: 'T', featureCode: 'MT' }
+}
+
 function numberedPlaces(count: number): readonly PlaceRecord[] {
   return Array.from({ length: count }, (_, index) => place(`Lieu ${index + 1}`))
 }
@@ -112,9 +123,9 @@ export const GEONAMES_STEPS: readonly StepHandler<World>[] = [
   }),
 
   step(
-    /^GeoNames finds the place (.+?)(?: of class (\S+) and code (\S+) in ([^,]*), ([^,]+))?$/,
+    /^GeoNames finds the place (.+?)(?: of (?:class (\S+)|code (\S+)|a class other than A and P) in ([^,]*), ([^,]+))?$/,
     (world, [name = '', featureClass, featureCode, region, country]) => {
-      const details = featureClass === undefined ? {} : { featureClass, featureCode, region, country }
+      const details = country === undefined ? {} : { ...feature(featureClass, featureCode), region, country }
       find(world, [place(name, details)])
     },
   ),
