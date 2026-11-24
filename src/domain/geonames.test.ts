@@ -150,6 +150,20 @@ describe('readSearchAnswer', () => {
     expect(firstSuggestion(places({ ...GRENOBLE, bbox: { west: 4.74, south: 44.7, east: 6.36 } }))?.destination.kind).toBe('view')
   })
 
+  it.each([
+    ['a west', { west: -180.5, south: 44.7, east: 6.36, north: 45.88 }],
+    ['an east', { west: 4.74, south: 44.7, east: -360, north: 45.88 }],
+    ['a south', { west: 4.74, south: -90.5, east: 6.36, north: 45.88 }],
+    ['a north', { west: 4.74, south: 44.7, east: 6.36, north: 91 }],
+  ])('centres the map on a place whose extent has %s outside the world', (_edge, bbox) => {
+    expect(firstSuggestion(places({ ...GRENOBLE, bbox }))?.destination.kind).toBe('view')
+  })
+
+  it('reads an extent that reaches the edges of the world', () => {
+    const world = { west: -180, south: -90, east: 180, north: 90 }
+    expect(firstSuggestion(places({ ...GRENOBLE, bbox: world }))?.destination).toEqual({ kind: 'extent', extent: [-180, -90, 180, 90] })
+  })
+
   it('reads a place with no class, code, region or country', () => {
     const found = places({ name: 'Somewhere', lat: '1', lng: '2' })
     expect(firstSuggestion(found)).toMatchObject({ name: 'Somewhere', kind: 'place', context: '' })

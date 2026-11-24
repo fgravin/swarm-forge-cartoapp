@@ -79,11 +79,21 @@ function positionOf(object: JsonObject): LngLat | undefined {
   return lng === undefined || lat === undefined ? undefined : { lng, lat }
 }
 
+function isLongitude(degrees: number): boolean {
+  return degrees >= -180 && degrees <= 180
+}
+
+function isLatitude(degrees: number): boolean {
+  return degrees >= -90 && degrees <= 90
+}
+
+/** The extent of a place, unless it is not given in full, or not in the world's coordinates. */
 function extentOf(object: JsonObject): Bbox | undefined {
   const bbox = object['bbox']
   if (!isObject(bbox)) return undefined
   const [west, south, east, north] = ['west', 'south', 'east', 'north'].map((key) => numberField(bbox, key))
   if (west === undefined || south === undefined || east === undefined || north === undefined) return undefined
+  if (![west, east].every(isLongitude) || ![south, north].every(isLatitude)) return undefined
   return [west, south, east, north]
 }
 

@@ -18,7 +18,8 @@ import {
 } from '../domain/placeSearch'
 import { suggestionType } from '../domain/suggestions'
 import type { Connectable, MapNavigation } from './mapPort'
-import type { PlaceFinder, Timer } from './searchPorts'
+import type { PlaceFinder } from './searchPorts'
+import type { Timer } from './timerPort'
 
 /** What the place search needs from outside. */
 export interface PlaceSearchServices {

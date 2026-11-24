@@ -4,6 +4,7 @@ import type { DrawEvent, MapPointer, ScreenPoint } from '../../src/domain/bboxCa
 import type { Destination } from '../../src/domain/destination'
 import type { RasterTiles } from '../../src/domain/rasterTiles'
 import type { LngLat, MapView } from '../../src/domain/mapView'
+import type { WmsTileLayer } from '../../src/domain/wmsTiles'
 
 /** A map that records what the application draws on it, moved and drawn on by the steps as a user would. */
 export interface FakeMap {
@@ -12,8 +13,10 @@ export interface FakeMap {
   moveTo(view: MapView): void
   /** Every basemap the application has drawn, in order; the last one is on the map. */
   drawnBasemaps(): readonly RasterTiles[]
-  /** The credits the map shows: those of the basemap it draws. */
-  credits(): readonly string[]
+  /** The credits the map shows, as the application writes them. */
+  credits(): string
+  /** The WMS layers the map draws over its basemap, the first one on top. */
+  drawnLayers(): readonly WmsTileLayer[]
   /** Whether the application has turned the drawing mode of the map on. */
   drawingMode(): boolean
   /** The rectangles the map shows over its basemap. */
@@ -38,6 +41,8 @@ export function createFakeMap(): FakeMap {
   const viewListeners = new Set<(view: MapView) => void>()
   const drawListeners = new Set<(event: DrawEvent) => void>()
   const drawn: RasterTiles[] = []
+  let layers: readonly WmsTileLayer[] = []
+  let credits = ''
   const destinations: Destination[] = []
   let drawingMode = false
   let rectangles: readonly Bbox[] = []
@@ -66,6 +71,12 @@ export function createFakeMap(): FakeMap {
     goTo(destination) {
       destinations.push(destination)
     },
+    showLayers(shown) {
+      layers = shown
+    },
+    showCredits(shown) {
+      credits = shown
+    },
     destroy() {
       viewListeners.clear()
       drawListeners.clear()
@@ -75,7 +86,8 @@ export function createFakeMap(): FakeMap {
     port,
     moveTo: (view) => viewListeners.forEach((listener) => listener(view)),
     drawnBasemaps: () => drawn,
-    credits: () => drawn.slice(-1).map((tiles) => tiles.attribution),
+    credits: () => credits,
+    drawnLayers: () => layers,
     drawingMode: () => drawingMode,
     rectangles: () => rectangles,
     pointerAt: (position) => ({

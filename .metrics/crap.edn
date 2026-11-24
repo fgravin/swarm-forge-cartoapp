@@ -1,21 +1,32 @@
 {:entries [
   {:name "usePlaceSearch", :namespace "application.usePlaceSearch", :complexity 9, :coverage 100.0, :crap 9.0}
   {:name "applyWhileOn", :namespace "domain.bboxCapture", :complexity 8, :coverage 88.8889, :crap 8.0878}
+  {:name "extentOf", :namespace "domain.geonames", :complexity 8, :coverage 100.0, :crap 8.0}
   {:name "searchMessage", :namespace "domain.placeSearch", :complexity 7, :coverage 83.3333, :crap 7.2269}
   {:name "useBboxCapture", :namespace "application.useBboxCapture", :complexity 6, :coverage 100.0, :crap 6.0}
-  {:name "extentOf", :namespace "domain.geonames", :complexity 6, :coverage 100.0, :crap 6.0}
+  {:name "useLayers", :namespace "application.useLayers", :complexity 6, :coverage 100.0, :crap 6.0}
   {:name "readService", :namespace "domain.geonames", :complexity 6, :coverage 100.0, :crap 6.0}
+  {:name "layerStatus", :namespace "domain.layerList", :complexity 5, :coverage 75.0, :crap 5.3906}
   {:name "numberField", :namespace "domain.geonames", :complexity 5, :coverage 100.0, :crap 5.0}
+  {:name "legendView", :namespace "domain.layerList", :complexity 5, :coverage 100.0, :crap 5.0}
   {:name "movedIndex", :namespace "domain.placeSearch", :complexity 5, :coverage 100.0, :crap 5.0}
+  {:name "itemOf", :namespace "application.useLayers", :complexity 4, :coverage 100.0, :crap 4.0}
   {:name "countryOf", :namespace "domain.geonames", :complexity 4, :coverage 100.0, :crap 4.0}
   {:name "placeKind", :namespace "domain.geonames", :complexity 4, :coverage 100.0, :crap 4.0}
   {:name "readAddress", :namespace "domain.geonames", :complexity 4, :coverage 100.0, :crap 4.0}
   {:name "readPlace", :namespace "domain.geonames", :complexity 4, :coverage 100.0, :crap 4.0}
+  {:name "availabilityOf", :namespace "domain.layerList", :complexity 4, :coverage 100.0, :crap 4.0}
+  {:name "changeAt", :namespace "domain.layerList", :complexity 4, :coverage 100.0, :crap 4.0}
+  {:name "drawnLayers", :namespace "domain.layerList", :complexity 4, :coverage 100.0, :crap 4.0}
+  {:name "wmsTileUrl", :namespace "domain.wmsTiles", :complexity 4, :coverage 100.0, :crap 4.0}
   {:name "useBasemaps", :namespace "application.useBasemaps", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "shownRectangles", :namespace "domain.bboxCapture", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "isObject", :namespace "domain.geonames", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "positionOf", :namespace "domain.geonames", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "readSearchAnswer", :namespace "domain.geonames", :complexity 3, :coverage 100.0, :crap 3.0}
+  {:name "layerTitle", :namespace "domain.layerList", :complexity 3, :coverage 100.0, :crap 3.0}
+  {:name "setLayerOpacity", :namespace "domain.layerList", :complexity 3, :coverage 100.0, :crap 3.0}
+  {:name "timeOut", :namespace "domain.layerList", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "chooseActiveSuggestion", :namespace "domain.placeSearch", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "chooseSuggestion", :namespace "domain.placeSearch", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "clearSearch", :namespace "domain.placeSearch", :complexity 3, :coverage 100.0, :crap 3.0}
@@ -23,6 +34,7 @@
   {:name "resultsOf", :namespace "domain.placeSearch", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "tileServerUrls", :namespace "domain.rasterTiles", :complexity 3, :coverage 100.0, :crap 3.0}
   {:name "geonamesPlaceFinder", :namespace "application.geonamesPlaceFinder", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "useCredits", :namespace "application.useCredits", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "useMapScreen", :namespace "application.useMapScreen", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "useMapView", :namespace "application.useMapView", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "suggestionOptions", :namespace "application.usePlaceSearch", :complexity 2, :coverage 100.0, :crap 2.0}
@@ -35,7 +47,13 @@
   {:name "extentDestination", :namespace "domain.destination", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "foundPlaces", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "geonamesUsername", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "isLatitude", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "isLongitude", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "stringField", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "changeAvailableAt", :namespace "domain.layerList", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "failLegend", :namespace "domain.layerList", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "layerExtent", :namespace "domain.layerList", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "receiveDescription", :namespace "domain.layerList", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "formatDegrees", :namespace "domain.mapView", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "closeResults", :namespace "domain.placeSearch", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "moveActive", :namespace "domain.placeSearch", :complexity 2, :coverage 100.0, :crap 2.0}
@@ -44,10 +62,16 @@
   {:name "bboxBetween", :namespace "domain.bbox", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "bboxRing", :namespace "domain.bbox", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "isDrawingModeOn", :namespace "domain.bboxCapture", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "describeCredits", :namespace "domain.credits", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "viewDestination", :namespace "domain.destination", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "foundAddresses", :namespace "domain.geonames", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "geonamesRequests", :namespace "domain.geonames", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "present", :namespace "domain.geonames", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "describeOpacity", :namespace "domain.layerList", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "initialLayers", :namespace "domain.layerList", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "layerCredits", :namespace "domain.layerList", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "toggleLayerLegend", :namespace "domain.layerList", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "toggleLayerShown", :namespace "domain.layerList", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "describeMapView", :namespace "domain.mapView", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "isSearchable", :namespace "domain.placeSearch", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "startSearch", :namespace "domain.placeSearch", :complexity 1, :coverage 100.0, :crap 1.0}
@@ -57,4 +81,5 @@
   {:name "joinGiven", :namespace "domain.suggestions", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "suggestionType", :namespace "domain.suggestions", :complexity 1, :coverage 100.0, :crap 1.0}
   {:name "suggestionsOf", :namespace "domain.suggestions", :complexity 1, :coverage 100.0, :crap 1.0}
+  {:name "httpsUrl", :namespace "domain.wmsTiles", :complexity 1, :coverage 100.0, :crap 1.0}
 ]}
