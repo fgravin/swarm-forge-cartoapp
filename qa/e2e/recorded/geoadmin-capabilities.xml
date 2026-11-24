@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The WMS 1.3.0 GetCapabilities answer of https://wms.geo.admin.ch/?lang=fr, recorded on 2026-11-24 and
+     reduced to the layer ch.bafu.schutzgebiete-paerke_nationaler_bedeutung: its parent layers, without their other children,
+     and the coordinate systems EPSG:3857, EPSG:4326 and CRS:84 alone. -->
+<WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:ms="http://mapserver.gis.umn.edu/mapserver" xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3.0" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd  http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd  http://mapserver.gis.umn.edu/mapserver https://wms.geo.admin.ch/fr/?service=WMS&amp;version=1.3.0&amp;request=GetSchemaExtension">
+  <Service>
+    <Name>WMS</Name>
+    <Title>WMS IFDG</Title>
+    <Abstract>Données publiques de l'infrastructure fédérale de données géographiques (IFDG) (Revision: service-wms: 212cb63)</Abstract>
+    <KeywordList>
+      <Keyword>BGDI Geodaten</Keyword>
+    </KeywordList>
+    <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+    <ContactInformation>
+      <ContactPersonPrimary>
+        <ContactPerson>webgis@swisstopo.ch</ContactPerson>
+        <ContactOrganization>Office fédéral de topographie swisstopo</ContactOrganization>
+      </ContactPersonPrimary>
+      <ContactAddress>
+        <AddressType>text/html</AddressType>
+        <Address>Seftigenstrasse 264</Address>
+        <City>Wabern</City>
+        <StateOrProvince>Kanton Bern</StateOrProvince>
+        <PostCode>3084</PostCode>
+        <Country>Schweiz</Country>
+      </ContactAddress>
+      <ContactVoiceTelephone>+41 (0)58 / 469 01 11</ContactVoiceTelephone>
+      <ContactFacsimileTelephone>+41 (0)58 / 469 04 59</ContactFacsimileTelephone>
+    </ContactInformation>
+    <Fees>none</Fees>
+    <MaxWidth>10000</MaxWidth>
+    <MaxHeight>10000</MaxHeight>
+  </Service>
+  <Capability>
+    <Request>
+      <GetCapabilities>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Get>
+            <Post>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetCapabilities>
+      <GetMap>
+        <Format>image/jpeg</Format>
+        <Format>image/png</Format>
+        <Format>image/pnga</Format>
+        <Format>image/png; mode=32bit</Format>
+        <Format>image/png; mode=8bit</Format>
+        <Format>image/tiff</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Get>
+            <Post>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetMap>
+      <GetFeatureInfo>
+        <Format>application/json</Format>
+        <Format>application/json; subtype=geojson</Format>
+        <Format>application/vnd.ogc.gml</Format>
+        <Format>text/plain</Format>
+        <Format>text/xml</Format>
+        <Format>text/xml; subtype=gml/3.1.1</Format>
+        <Format>text/xml; subtype=gml/3.2.1</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Get>
+            <Post>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Post>
+          </HTTP>
+        </DCPType>
+      </GetFeatureInfo>
+      <sld:DescribeLayer>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Get>
+            <Post>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Post>
+          </HTTP>
+        </DCPType>
+      </sld:DescribeLayer>
+      <sld:GetLegendGraphic>
+        <Format>image/png</Format>
+        <Format>image/jpeg</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Get>
+            <Post>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Post>
+          </HTTP>
+        </DCPType>
+      </sld:GetLegendGraphic>
+      <ms:GetStyles>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP>
+            <Get>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Get>
+            <Post>
+              <OnlineResource xlink:href="https://wms.geo.admin.ch/fr/?" />
+            </Post>
+          </HTTP>
+        </DCPType>
+      </ms:GetStyles>
+    </Request>
+    <Exception>
+      <Format>XML</Format>
+      <Format>INIMAGE</Format>
+      <Format>BLANK</Format>
+    </Exception>
+    <Layer>
+      <Title>WMS IFDG</Title>
+      <Abstract>Données publiques de l'infrastructure fédérale de données géographiques (IFDG) (Revision: service-wms: 212cb63)</Abstract>
+      <KeywordList>
+        <Keyword>BGDI Geodaten</Keyword>
+      </KeywordList>
+      <CRS>EPSG:4326</CRS>
+      <CRS>EPSG:3857</CRS>
+      <EX_GeographicBoundingBox>
+        <westBoundLongitude>3.329595</westBoundLongitude>
+        <eastBoundLongitude>14.278255</eastBoundLongitude>
+        <southBoundLatitude>44.074747</southBoundLatitude>
+        <northBoundLatitude>49.200438</northBoundLatitude>
+      </EX_GeographicBoundingBox>
+      <Attribution>
+        <Title>Das Geoportal des Bundes</Title>
+        <OnlineResource xlink:href="http://www.geo.admin.ch/" />
+        <LogoURL width="50" height="45">
+          <Format>image/png</Format>
+          <OnlineResource xlink:type="simple" xlink:href="http://wms.geo.admin.ch/medias/ch45x50.png" />
+        </LogoURL>
+      </Attribution>
+      <Layer queryable="1" opaque="0" cascaded="0">
+        <Name>ch.bafu.schutzgebiete-paerke_nationaler_bedeutung</Name>
+        <Title>Parcs suisses (Zones)</Title>
+        <Abstract>Le fichier Parcs contient le Parc national suisse qui est une aire protégée par la loi du 19 décembre 1980 sur le Parc national (RS 454) et les projets de parc déposés à l`OFEV. Ces projets de parc déposés à l`OFEV sont régis par la loi sur la protection de la nature et du paysage révisée le 1er décembre 2007 (RS 451). Cette loi définit trois catégories de parcs nationaux: les parcs nationaux, les parcs naturels régionaux et les parcs naturels périurbains.Selon l`état d`avancement du projet, les régions peuvent demander l`attribution du label ` Candidat ` (phase de création) pour la création d`un parc ou du label protégé ` Parc ` pour le fonctionnement d`un parc actuel (phase d`exploitation). Les parcs nationaux favorisent la protection et la valorisation des milieux naturels exceptionnels. Enfin, de tels parcs contribuent au développement économique des régions.</Abstract>
+        <KeywordList>
+          <Keyword>ch.bafu.schutzgebiete-paerke_nationaler_bedeutung.wms_ows_keywordlist</Keyword>
+        </KeywordList>
+        <CRS>EPSG:4326</CRS>
+        <CRS>EPSG:3857</CRS>
+        <EX_GeographicBoundingBox>
+          <westBoundLongitude>3.329595</westBoundLongitude>
+          <eastBoundLongitude>14.278255</eastBoundLongitude>
+          <southBoundLatitude>44.074747</southBoundLatitude>
+          <northBoundLatitude>49.200438</northBoundLatitude>
+        </EX_GeographicBoundingBox>
+        <MetadataURL type="TC211">
+          <Format>text/html</Format>
+          <OnlineResource xlink:type="simple" xlink:href="https://www.geocat.ch/geonetwork/srv/fre/catalog.search#/metadata/b1fb8e29-8387-4081-9976-022ff925823b" />
+        </MetadataURL>
+        <Style>
+          <Name>default</Name>
+          <Title>default</Title>
+          <LegendURL width="264" height="141">
+            <Format>image/png</Format>
+            <OnlineResource xlink:type="simple" xlink:href="https://api3.geo.admin.ch/static/images/legends/ch.bafu.schutzgebiete-paerke_nationaler_bedeutung_fr.png" />
+          </LegendURL>
+        </Style>
+      </Layer>
+    </Layer>
+  </Capability>
+</WMS_Capabilities>

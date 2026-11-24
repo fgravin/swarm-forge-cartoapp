@@ -134,6 +134,9 @@ export const GRENOBLE: Place = {
   lng: '5.71667',
 }
 
+/** What the view indicator reads once the map is centred on Grenoble. */
+export const GRENOBLE_VIEW = '45.1667° N, 5.7167° E · zoom 12.0'
+
 /** The address search finds 4 Place Saint-André, Grenoble. */
 export const SAINT_ANDRE: GeoNamesAnswer = {
   kind: 'json',

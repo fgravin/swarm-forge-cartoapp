@@ -1,4 +1,4 @@
-import { inflateSync } from 'node:zlib'
+import { crc32, deflateSync, inflateSync } from 'node:zlib'
 
 /** The pixels of a picture, row by row, `channels` bytes per pixel. */
 export interface Pixels {
@@ -89,4 +89,29 @@ export function decodePng(png: Buffer): Pixels {
   }
   if (header === undefined) throw new Error('The PNG picture has no header.')
   return { ...header, data: unfilter(inflateSync(Buffer.concat(imageData)), header) }
+}
+
+/** A colour, red, green and blue, from 0 to 255 each. */
+export type Colour = readonly [red: number, green: number, blue: number]
+
+function chunk(type: string, data: Buffer): Buffer {
+  const length = Buffer.alloc(4)
+  length.writeUInt32BE(data.length)
+  const typed = Buffer.concat([Buffer.from(type, 'ascii'), data])
+  const check = Buffer.alloc(4)
+  check.writeUInt32BE(crc32(typed))
+  return Buffer.concat([length, typed, check])
+}
+
+/** An opaque PNG picture of `width` by `height` pixels, all of `colour`. */
+export function encodePng(width: number, height: number, colour: Colour): Buffer {
+  const header = Buffer.alloc(13)
+  header.writeUInt32BE(width, 0)
+  header.writeUInt32BE(height, 4)
+  // 8 bits per sample, truecolour, default compression and filters, not interlaced.
+  header.set([8, 2, 0, 0, 0], 8)
+  // Each row: filter 0, then its pixels.
+  const row = Buffer.concat([Buffer.from([0]), ...Array.from({ length: width }, () => Buffer.from(colour))])
+  const rows = Buffer.concat(Array.from({ length: height }, () => row))
+  return Buffer.concat([SIGNATURE, chunk('IHDR', header), chunk('IDAT', deflateSync(rows)), chunk('IEND', Buffer.alloc(0))])
 }

@@ -1,22 +1,21 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { drawBbox } from './bbox'
-import { finding, GRE_PLACES, SAINT_ANDRE, USUAL_ANSWERS, type GeoNamesAnswers, type Place } from './geonames'
-import { expectOnlySelected, steadyText, tabUntilFocused, type MapScreen } from './mapScreen'
+import {
+  finding,
+  GRE_PLACES,
+  GRENOBLE_VIEW,
+  SAINT_ANDRE,
+  USUAL_ANSWERS,
+  type GeoNamesAnswers,
+  type Place,
+} from './geonames'
+import { expectOnlySelected, steadyText, tabUntilFocused } from './mapScreen'
 import { mapCentre, offset } from './pointer'
 import { expectListClosed, expectSuggestions, openSearch, pause, searchFor, typeSlowly, type SearchBox } from './searchBox'
+import { expectViewReads, expectViewWithin, type ViewRanges } from './view'
 
 // Executable form of qa/procedures/place-search-choice.md.
-
-const GRENOBLE_VIEW = '45.1667° N, 5.7167° E · zoom 12.0'
-// The map may fly there: from zoom 5 to zoom 17, the flight takes a few seconds.
-const FLIGHT_TIMEOUT = 15_000
-
-/** "Expect the view indicator to read `text`", once it stops changing. */
-async function expectViewReads(screen: MapScreen, text: string): Promise<void> {
-  await expect(screen.viewIndicator).toHaveText(text, { timeout: FLIGHT_TIMEOUT })
-  expect(await steadyText(screen.viewIndicator)).toBe(text)
-}
 
 /** "Using only the keyboard, press Tab until the search field has the focus. Type T and pause." */
 async function searchByKeyboard(page: Page, search: SearchBox, text: string): Promise<void> {
@@ -55,33 +54,9 @@ test.describe('place-search-choice 1: choosing a suggestion without an extent ce
   }
 })
 
-/** Degrees north and east, and a zoom. */
-interface View {
-  readonly lat: number
-  readonly lng: number
-  readonly zoom: number
-}
-
-const VIEW_TEXT = /^(\d+\.\d+)° ([NS]), (\d+\.\d+)° ([EW]) · zoom (\d+\.\d)$/
-
-function readView(text: string): View {
-  const [, lat, ns, lng, ew, zoom] = VIEW_TEXT.exec(text) ?? []
-  if (zoom === undefined) throw new Error(`The view indicator reads "${text}".`)
-  return {
-    lat: Number(lat) * (ns === 'S' ? -1 : 1),
-    lng: Number(lng) * (ew === 'W' ? -1 : 1),
-    zoom: Number(zoom),
-  }
-}
-
-type Range = readonly [number, number]
-
-interface ExtentRow {
+interface ExtentRow extends ViewRanges {
   readonly text: string
   readonly place: Place
-  readonly lat: Range
-  readonly lng: Range
-  readonly zoom: Range
 }
 
 function region(name: string, bbox: Place['bbox'], countryName: string, lat: string, lng: string): Place {
@@ -106,11 +81,6 @@ const EXTENT_ROWS: readonly ExtentRow[] = [
   },
 ]
 
-function expectWithin(value: number, [low, high]: Range, what: string): void {
-  expect(value, what).toBeGreaterThanOrEqual(low)
-  expect(value, what).toBeLessThanOrEqual(high)
-}
-
 test.describe('place-search-choice 2: choosing a suggestion with an extent shows that extent', () => {
   for (const row of EXTENT_ROWS) {
     test(row.place.name, async ({ page }) => {
@@ -120,12 +90,7 @@ test.describe('place-search-choice 2: choosing a suggestion with an extent shows
       await searchFor(page, search, row.text)
       await search.option(row.place.name).click()
 
-      await expect(screen.viewIndicator).not.toHaveText(before)
-      const text = await steadyText(screen.viewIndicator)
-      const view = readView(text)
-      expectWithin(view.lat, row.lat, `the latitude of ${text}`)
-      expectWithin(view.lng, row.lng, `the longitude of ${text}`)
-      expectWithin(view.zoom, row.zoom, `the zoom of ${text}`)
+      await expectViewWithin(screen, before, row)
     })
   }
 })

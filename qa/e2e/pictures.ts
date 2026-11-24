@@ -1,12 +1,13 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
-import { decodePng, type Pixels } from './png'
+import { decodePng, type Colour, type Pixels } from './png'
 import type { Point } from './pointer'
 
-// A picture of the map is the part of it around C that no panel or control
-// covers, on the 1280 by 720 page: from 320 pixels left of C to 400 pixels
-// right of it, and 280 pixels above and below it. The panels on the left reach
-// about 290 pixels into the page.
+// A picture of the map is the part of it around C, on the 1280 by 720 page:
+// from 320 pixels left of C to 400 pixels right of it, and 280 pixels above and
+// below it. The panels on the left reach about 290 pixels into the page. The
+// "Couches" panel, on the right, reaches into the picture: its pixels are left
+// out of every comparison.
 const LEFT = 320
 const RIGHT = 400
 const ABOVE = 280
@@ -16,6 +17,8 @@ const BELOW = 280
 export interface MapPicture {
   readonly centre: Point
   readonly pixels: Pixels
+  /** Where panels over the map lie in the picture: what they show is not the map's. */
+  readonly covered: readonly Area[]
 }
 
 /** An area of the map, in pixels from C: negative is left of C or above it. */
@@ -26,9 +29,33 @@ export interface Area {
   readonly bottom: number
 }
 
+// The panels over the map that reach into a picture: the "Couches" panel, on the right.
+const coveringPanels = (page: Page): Locator => page.getByRole('region', { name: 'Couches', exact: true })
+
+/** Where the panels over the map lie, in pixels from C. */
+async function coveredAreas(page: Page, centre: Point): Promise<readonly Area[]> {
+  const boxes = await Promise.all((await coveringPanels(page).all()).map((panel) => panel.boundingBox()))
+  return boxes.flatMap((box) =>
+    box === null
+      ? []
+      : [areaBetween(box.x - centre.x, box.y - centre.y, box.x + box.width - centre.x, box.y + box.height - centre.y)],
+  )
+}
+
 export async function takeMapPicture(page: Page, centre: Point): Promise<MapPicture> {
   const clip = { x: centre.x - LEFT, y: centre.y - ABOVE, width: LEFT + RIGHT, height: ABOVE + BELOW }
-  return { centre, pixels: decodePng(await page.screenshot({ clip })) }
+  const covered = await coveredAreas(page, centre)
+  return { centre, pixels: decodePng(await page.screenshot({ clip })), covered }
+}
+
+function liesIn(area: Area, x: number, y: number): boolean {
+  return x >= area.left && x <= area.right && y >= area.top && y <= area.bottom
+}
+
+/** The colour of the map `dx` pixels right of C and `dy` pixels below it. */
+export function colourAt({ pixels }: MapPicture, dx = 0, dy = 0): Colour {
+  const index = ((ABOVE + dy) * pixels.width + LEFT + dx) * pixels.channels
+  return [pixels.data.readUInt8(index), pixels.data.readUInt8(index + 1), pixels.data.readUInt8(index + 2)]
 }
 
 // Colour levels a pixel may move by without looking different.
@@ -52,13 +79,19 @@ function grow(area: Area | undefined, x: number, y: number): Area {
   }
 }
 
-/** The smallest area that holds every pixel where the two pictures differ, or undefined when they look the same. */
+/**
+ * The smallest area that holds every pixel of the map where the two pictures
+ * differ, or undefined when the map looks the same. Panels are not the map.
+ */
 export function changedArea(before: MapPicture, after: MapPicture): Area | undefined {
   const { width, height, channels } = after.pixels
+  const covered = [...before.covered, ...after.covered]
   let area: Area | undefined
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      if (pixelDiffers(before.pixels, after.pixels, (y * width + x) * channels)) area = grow(area, x - LEFT, y - ABOVE)
+      const [dx, dy] = [x - LEFT, y - ABOVE]
+      if (covered.some((panel) => liesIn(panel, dx, dy))) continue
+      if (pixelDiffers(before.pixels, after.pixels, (y * width + x) * channels)) area = grow(area, dx, dy)
     }
   }
   return area
