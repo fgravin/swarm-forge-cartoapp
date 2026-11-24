@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 
 import { viewDestination, type Destination } from '../domain/destination'
 import type { SearchAnswer, Suggestion } from '../domain/suggestions'
-import type { PlaceFinder, Timer } from './searchPorts'
+import type { PlaceFinder } from './searchPorts'
+import type { Timer } from './timerPort'
 import { usePlaceSearch, type PlaceSearchState } from './usePlaceSearch'
 
 /** What the user, the passing of time, and the place finder do to the place search. */

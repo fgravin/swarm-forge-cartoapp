@@ -1,10 +1,10 @@
 {:entries [
   {:name "usePlaceSearch", :namespace "application.usePlaceSearch", :complexity 9, :coverage 100.0, :crap 9.0}
   {:name "applyWhileOn", :namespace "domain.bboxCapture", :complexity 8, :coverage 88.8889, :crap 8.0878}
+  {:name "extentOf", :namespace "domain.geonames", :complexity 8, :coverage 100.0, :crap 8.0}
   {:name "searchMessage", :namespace "domain.placeSearch", :complexity 7, :coverage 83.3333, :crap 7.2269}
   {:name "useBboxCapture", :namespace "application.useBboxCapture", :complexity 6, :coverage 100.0, :crap 6.0}
   {:name "useLayers", :namespace "application.useLayers", :complexity 6, :coverage 100.0, :crap 6.0}
-  {:name "extentOf", :namespace "domain.geonames", :complexity 6, :coverage 100.0, :crap 6.0}
   {:name "readService", :namespace "domain.geonames", :complexity 6, :coverage 100.0, :crap 6.0}
   {:name "layerStatus", :namespace "domain.layerList", :complexity 5, :coverage 75.0, :crap 5.3906}
   {:name "numberField", :namespace "domain.geonames", :complexity 5, :coverage 100.0, :crap 5.0}
@@ -47,6 +47,8 @@
   {:name "extentDestination", :namespace "domain.destination", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "foundPlaces", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "geonamesUsername", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "isLatitude", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
+  {:name "isLongitude", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "stringField", :namespace "domain.geonames", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "changeAvailableAt", :namespace "domain.layerList", :complexity 2, :coverage 100.0, :crap 2.0}
   {:name "failLegend", :namespace "domain.layerList", :complexity 2, :coverage 100.0, :crap 2.0}

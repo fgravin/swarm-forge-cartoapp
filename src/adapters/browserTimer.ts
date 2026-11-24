@@ -1,4 +1,4 @@
-import type { Timer } from '../application/searchPorts'
+import type { Timer } from '../application/timerPort'
 
 /** The browser's timers. */
 export const browserTimer: Timer = {

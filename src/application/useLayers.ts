@@ -23,7 +23,7 @@ import {
 } from '../domain/layerList'
 import { WMS_LAYERS } from '../domain/wmsLayers'
 import type { Connectable, LayerDisplay, MapNavigation } from './mapPort'
-import type { Timer } from './searchPorts'
+import type { Timer } from './timerPort'
 import type { WmsCapabilities } from './wmsPort'
 
 /** What the layers need from outside. */

@@ -19,12 +19,22 @@ const coordinates = fc.double({ min: -180, max: 180, noNaN: true }).map((degrees
 const numberish = fc.oneof(
   { arbitrary: coordinates, weight: 2 },
   { arbitrary: coordinates.map(String), weight: 2 },
+  // Beyond the world's coordinates, and on its edges.
+  fc.oneof(fc.double({ min: -400, max: 400, noNaN: true }), fc.constantFrom(-180, 180, -90, 90, -360, 360)),
   fc.string({ maxLength: 4 }),
   fc.jsonValue({ maxDepth: 1 }),
 )
 
+// Mostly numbers, some beyond the world's coordinates or on its edges.
+const extentEdges = fc.oneof(
+  { arbitrary: coordinates, weight: 2 },
+  coordinates.map(String),
+  fc.double({ min: -400, max: 400, noNaN: true }),
+  fc.constantFrom(-180, 180, -90, 90, -360, 360),
+)
+
 const extents = fc.oneof(
-  { arbitrary: fc.record({ west: numberish, south: numberish, east: numberish, north: numberish }), weight: 3 },
+  { arbitrary: fc.record({ west: extentEdges, south: extentEdges, east: extentEdges, north: extentEdges }), weight: 3 },
   fc.record({ west: numberish, south: numberish, east: numberish, north: numberish }, { requiredKeys: [] }),
   fc.jsonValue({ maxDepth: 1 }),
 )
@@ -88,9 +98,14 @@ function expectWithinItsPromises(answer: SearchAnswer): void {
       expect(Number.isFinite(destination.view.center.lng) && Number.isFinite(destination.view.center.lat)).toBe(true)
       expect(destination.view.zoom).toBe(suggestion.kind === 'address' ? 17 : 12)
     } else {
+      // An extent the map can show: in the world's coordinates, its east at most a full turn east of its west.
       const [west, south, east, north] = destination.extent
-      expect([west, south, east, north].every(Number.isFinite)).toBe(true)
-      expect(west).toBeLessThanOrEqual(east)
+      expect(west).toBeGreaterThanOrEqual(-180)
+      expect(west).toBeLessThanOrEqual(180)
+      expect(east).toBeGreaterThanOrEqual(west)
+      expect(east).toBeLessThanOrEqual(west + 360)
+      expect(south).toBeGreaterThanOrEqual(-90)
+      expect(north).toBeLessThanOrEqual(90)
     }
   })
 }

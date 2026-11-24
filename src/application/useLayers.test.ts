@@ -4,7 +4,7 @@ import type { Destination } from '../domain/destination'
 import type { DeclaredLayer, LayerDescription } from '../domain/wmsLayers'
 import type { WmsTileLayer } from '../domain/wmsTiles'
 import type { LayerDisplay, MapNavigation } from './mapPort'
-import type { Timer } from './searchPorts'
+import type { Timer } from './timerPort'
 import { useLayers, type LayerItem, type LayersState } from './useLayers'
 
 const SERVERS = ['https://data.geopf.fr/wms-r/wms', 'https://geoservices.brgm.fr/geologie', 'https://wms.geo.admin.ch/?lang=fr']
