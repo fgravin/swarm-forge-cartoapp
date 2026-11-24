@@ -11,6 +11,7 @@ import {
   MAX_SUGGESTIONS,
   placeSuggestion,
   suggestionsOf,
+  type PlaceKind,
   type SearchAnswer,
   type Suggestion,
 } from './suggestions'
@@ -44,6 +45,14 @@ export function geonamesRequests(text: string, username: string): GeoNamesReques
   })
   const address = new URLSearchParams({ q: text, username })
   return { places: `${SERVER}/searchJSON?${places}`, address: `${SERVER}/geoCodeAddressJSON?${address}` }
+}
+
+/** The kind of a place, from its GeoNames feature class and code. */
+export function placeKind(featureClass: string, featureCode: string): PlaceKind {
+  if (featureCode.startsWith('PCL')) return 'country'
+  if (featureClass === 'A') return 'region'
+  if (featureClass === 'P') return 'town'
+  return 'place'
 }
 
 type JsonObject = Readonly<Record<string, unknown>>
@@ -94,8 +103,7 @@ function readPlace(found: unknown): Suggestion | undefined {
   if (name === '' || at === undefined) return undefined
   return placeSuggestion({
     name,
-    featureClass: stringField(found, 'fcl'),
-    featureCode: stringField(found, 'fcode'),
+    kind: placeKind(stringField(found, 'fcl'), stringField(found, 'fcode')),
     region: stringField(found, 'adminName1'),
     country: countryOf(found),
     position: at,
@@ -103,11 +111,12 @@ function readPlace(found: unknown): Suggestion | undefined {
   })
 }
 
+/** The address found, unless it cannot be put on the map or names nothing: like a place, an address without a name is left out. */
 function readAddress(found: unknown): Suggestion | undefined {
   if (!isObject(found)) return undefined
   const at = positionOf(found)
   if (at === undefined) return undefined
-  return addressSuggestion({
+  const address = addressSuggestion({
     houseNumber: stringField(found, 'houseNumber'),
     street: stringField(found, 'street'),
     town: stringField(found, 'locality'),
@@ -115,6 +124,7 @@ function readAddress(found: unknown): Suggestion | undefined {
     country: countryOf(found),
     position: at,
   })
+  return address.name === '' ? undefined : address
 }
 
 function present<T>(value: T | undefined): value is T {

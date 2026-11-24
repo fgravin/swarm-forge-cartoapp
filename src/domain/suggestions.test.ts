@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
   addressSuggestion,
   describeContext,
-  placeKind,
   placeSuggestion,
   suggestionsOf,
   suggestionType,
@@ -14,8 +13,7 @@ import {
 
 const GRENOBLE: FoundPlace = {
   name: 'Grenoble',
-  featureClass: 'P',
-  featureCode: 'PPLA3',
+  kind: 'town',
   region: 'Auvergne-Rhône-Alpes',
   country: 'France',
   position: { lng: 5.71667, lat: 45.16667 },
@@ -34,31 +32,6 @@ const SAINT_ANDRE: FoundAddress = {
 function namedPlace(name: string): Suggestion {
   return placeSuggestion({ ...GRENOBLE, name })
 }
-
-describe('placeKind', () => {
-  it.each([
-    ['A', 'PCLI', 'country'],
-    ['A', 'PCLD', 'country'],
-    ['A', 'PCL', 'country'],
-    ['A', 'ADM1', 'region'],
-    ['A', 'ADM2', 'region'],
-    ['P', 'PPLA3', 'town'],
-    ['P', 'PPLC', 'town'],
-    ['T', 'MT', 'place'],
-    ['H', 'LK', 'place'],
-    ['', '', 'place'],
-  ])('gives class %s and code %s the kind %s', (featureClass, featureCode, kind) => {
-    expect(placeKind(featureClass, featureCode)).toBe(kind)
-  })
-
-  it('takes a code that starts with PCL for a country whatever its class', () => {
-    expect(placeKind('P', 'PCLI')).toBe('country')
-  })
-
-  it('does not take a code that only contains PCL for a country', () => {
-    expect(placeKind('A', 'XPCL')).toBe('region')
-  })
-})
 
 describe('suggestionType', () => {
   it.each([
@@ -102,7 +75,7 @@ describe('placeSuggestion', () => {
   })
 
   it('shows the extent of a place that has one', () => {
-    const isere = { ...GRENOBLE, name: 'Isère', featureClass: 'A', featureCode: 'ADM2', extent: [4.74, 44.7, 6.36, 45.88] as const }
+    const isere = { ...GRENOBLE, name: 'Isère', kind: 'region', extent: [4.74, 44.7, 6.36, 45.88] } as const
     expect(placeSuggestion(isere).destination).toEqual({ kind: 'extent', extent: [4.74, 44.7, 6.36, 45.88] })
   })
 

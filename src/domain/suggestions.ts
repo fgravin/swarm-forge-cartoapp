@@ -5,6 +5,9 @@ import type { LngLat } from './mapView'
 /** What a suggestion is: a place of one of four kinds, or an address. */
 export type SuggestionKind = 'country' | 'region' | 'town' | 'place' | 'address'
 
+/** The kinds of places. */
+export type PlaceKind = Exclude<SuggestionKind, 'address'>
+
 /** One suggestion of the search: where the map goes when the user chooses it. */
 export interface Suggestion {
   readonly name: string
@@ -17,8 +20,7 @@ export interface Suggestion {
 /** A place GeoNames found, named in French. */
 export interface FoundPlace {
   readonly name: string
-  readonly featureClass: string
-  readonly featureCode: string
+  readonly kind: PlaceKind
   readonly region: string
   readonly country: string
   readonly position: LngLat
@@ -58,14 +60,6 @@ export function suggestionType(kind: SuggestionKind): string {
   return SUGGESTION_TYPES[kind]
 }
 
-/** The kind of a place, from its GeoNames feature class and code. */
-export function placeKind(featureClass: string, featureCode: string): Exclude<SuggestionKind, 'address'> {
-  if (featureCode.startsWith('PCL')) return 'country'
-  if (featureClass === 'A') return 'region'
-  if (featureClass === 'P') return 'town'
-  return 'place'
-}
-
 function joinGiven(parts: readonly string[], separator: string): string {
   return parts.filter((part) => part !== '').join(separator)
 }
@@ -81,7 +75,7 @@ export function describeContext(name: string, region: string, country: string): 
 export function placeSuggestion(place: FoundPlace): Suggestion {
   return {
     name: place.name,
-    kind: placeKind(place.featureClass, place.featureCode),
+    kind: place.kind,
     context: describeContext(place.name, place.region, place.country),
     destination: place.extent ? extentDestination(place.extent) : viewDestination(place.position, PLACE_ZOOM),
   }

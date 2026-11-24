@@ -1,3 +1,4 @@
+import { geonamesPlaceFinder } from '../../src/application/geonamesPlaceFinder'
 import { useMapScreen, type MapScreen } from '../../src/application/useMapScreen'
 import { createFakeClock, type FakeClock } from './fakeClock'
 import { createFakeGeoNames, USUAL_ANSWERS, type FakeGeoNames } from './fakeGeoNames'
@@ -39,7 +40,7 @@ export function createWorld(): World {
       return started
     },
     start(username) {
-      started = useMapScreen({ username, geonames: geonames.source, timer: clock.timer })
+      started = useMapScreen({ finder: geonamesPlaceFinder(username, geonames.source), timer: clock.timer })
       started.connect(map.port)
     },
     notedBbox: undefined,

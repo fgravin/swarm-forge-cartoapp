@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import type { Destination } from '../domain/destination'
-import type { JsonAnswer } from '../domain/jsonAnswer'
+import type { SearchAnswer, Suggestion } from '../domain/suggestions'
 import type { MapNavigation } from './mapPort'
-import type { JsonSource, Timer } from './searchPorts'
+import type { PlaceFinder, Timer } from './searchPorts'
 import { usePlaceSearch, type PlaceSearchState } from './usePlaceSearch'
 
 interface Scheduled {
@@ -48,46 +48,38 @@ function settle(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve))
 }
 
-interface Request {
-  readonly service: string
-  readonly text: string | null
-  readonly username: string | null
-  readonly answer: (answer: JsonAnswer) => void
+interface Search {
+  readonly text: string
+  readonly answer: (answer: SearchAnswer) => void
 }
 
-const NO_ADDRESS: JsonAnswer = { kind: 'answered', body: {} }
+const AT_5_45: Destination = { kind: 'view', view: { center: { lng: 5, lat: 45 }, zoom: 12 } }
 
-function placesFound(...names: readonly string[]): JsonAnswer {
-  const geonames = names.map((name) => ({ name, fcl: 'P', fcode: 'PPL', adminName1: 'Isère', countryName: 'France', lat: '45', lng: '5' }))
-  return { kind: 'answered', body: { totalResultsCount: geonames.length, geonames } }
+function townsFound(...names: readonly string[]): SearchAnswer {
+  const suggestions = names.map((name): Suggestion => ({ name, kind: 'town', context: 'Isère, France', destination: AT_5_45 }))
+  return { kind: 'found', suggestions }
 }
 
-/** What GeoNames answers at once to each request. */
-type Answers = (service: string, text: string | null) => JsonAnswer
+/** What the finder answers at once to each search. */
+type Answers = (text: string) => SearchAnswer
 
-/** GeoNames, answering each request when the test says so, or at once with `answers`. */
-function fakeGeoNames(answers?: Answers) {
-  const requests: Request[] = []
-  const geonames: JsonSource = {
-    getJson(url) {
-      const { pathname, searchParams } = new URL(url)
-      const service = pathname === '/searchJSON' ? 'places' : 'address'
-      const text = service === 'places' ? searchParams.get('name_startsWith') : searchParams.get('q')
+/** A place finder, answering each search when the test says so, or at once with `answers`. */
+function fakeFinder(answers?: Answers) {
+  const searches: Search[] = []
+  const finder: PlaceFinder = {
+    find(text) {
       return new Promise((resolve) => {
-        requests.push({ service, text, username: searchParams.get('username'), answer: resolve })
-        if (answers) resolve(answers(service, text))
+        searches.push({ text, answer: resolve })
+        if (answers) resolve(answers(text))
       })
     },
   }
   return {
-    geonames,
-    requests,
-    searchedTexts: () => requests.filter((request) => request.service === 'places').map((request) => request.text),
-    /** Answers the requests of the search for `text`. */
-    async answer(text: string, places: JsonAnswer, address: JsonAnswer = NO_ADDRESS): Promise<void> {
-      for (const request of requests.filter((each) => each.text === text)) {
-        request.answer(request.service === 'places' ? places : address)
-      }
+    finder,
+    searchedTexts: () => searches.map((search) => search.text),
+    /** Answers the searches for `text`. */
+    async answer(text: string, answer: SearchAnswer): Promise<void> {
+      for (const search of searches.filter((each) => each.text === text)) search.answer(answer)
       await settle()
     },
   }
@@ -99,16 +91,16 @@ function recordingNavigation() {
   return { navigation, destinations }
 }
 
-const atOnce: Answers = (_service, text) => placesFound(`${text} 1`, `${text} 2`, `${text} 3`)
+const atOnce: Answers = (text) => townsFound(`${text} 1`, `${text} 2`, `${text} 3`)
 
-/** `held`: GeoNames answers only when the test says so. */
+/** `held`: the finder answers only when the test says so. */
 function setUp(answers: Answers | 'held' = atOnce) {
   const clock = fakeClock()
-  const server = fakeGeoNames(answers === 'held' ? undefined : answers)
+  const places = fakeFinder(answers === 'held' ? undefined : answers)
   const map = recordingNavigation()
-  const search = usePlaceSearch({ username: 'carto-qa', geonames: server.geonames, timer: clock.timer })
+  const search = usePlaceSearch({ finder: places.finder, timer: clock.timer })
   search.connect(map.navigation)
-  return { clock, server, map, search }
+  return { clock, places, map, search }
 }
 
 function names(search: PlaceSearchState): readonly string[] {
@@ -120,22 +112,19 @@ async function searchFor(clock: ReturnType<typeof fakeClock>, search: PlaceSearc
   await clock.advance(1000)
 }
 
-describe('usePlaceSearch without a GeoNames username', () => {
-  it.each([undefined, ''])('is disabled and says it is not configured (username %j)', (username) => {
-    const clock = fakeClock()
-    const search = usePlaceSearch({ username, geonames: fakeGeoNames().geonames, timer: clock.timer })
+describe('usePlaceSearch without a place finder', () => {
+  it('is disabled and says it is not configured', () => {
+    const search = usePlaceSearch({ finder: undefined, timer: fakeClock().timer })
     expect(search.disabled).toBe(true)
     expect(search.hint).toBe('Recherche non configurée')
   })
 
-  it('ignores what is typed, and searches nothing', async () => {
+  it('ignores what is typed, and waits for nothing', () => {
     const clock = fakeClock()
-    const server = fakeGeoNames()
-    const search = usePlaceSearch({ username: undefined, geonames: server.geonames, timer: clock.timer })
-    await searchFor(clock, search, 'Gre')
+    const search = usePlaceSearch({ finder: undefined, timer: clock.timer })
+    search.type('Gre')
     expect(search.text.value).toBe('')
     expect(clock.pending()).toBe(0)
-    expect(server.requests).toEqual([])
   })
 })
 
@@ -156,40 +145,37 @@ describe('usePlaceSearch', () => {
     expect(search.text.value).toBe('Gr')
   })
 
-  it('searches GeoNames for the text once the user has stopped typing for 300 ms', async () => {
-    const { clock, server, search } = setUp()
+  it('searches for the text once the user has stopped typing for 300 ms', async () => {
+    const { clock, places, search } = setUp()
     search.type('Gre')
     await clock.advance(299)
-    expect(server.requests).toEqual([])
+    expect(places.searchedTexts()).toEqual([])
     await clock.advance(1)
-    expect(server.requests.map(({ service, text, username }) => ({ service, text, username }))).toEqual([
-      { service: 'places', text: 'Gre', username: 'carto-qa' },
-      { service: 'address', text: 'Gre', username: 'carto-qa' },
-    ])
+    expect(places.searchedTexts()).toEqual(['Gre'])
   })
 
   it('makes one search for what is typed without a pause, at the end', async () => {
-    const { clock, server, search } = setUp()
+    const { clock, places, search } = setUp()
     for (const text of ['Gre', 'Gren', 'Greno']) {
       search.type(text)
       await clock.advance(299)
     }
     await clock.advance(1)
-    expect(server.searchedTexts()).toEqual(['Greno'])
+    expect(places.searchedTexts()).toEqual(['Greno'])
   })
 
   it('searches nothing below 3 characters', async () => {
-    const { clock, server, search } = setUp()
+    const { clock, places, search } = setUp()
     await searchFor(clock, search, 'Gr')
-    expect(server.requests).toEqual([])
+    expect(places.searchedTexts()).toEqual([])
     expect(clock.pending()).toBe(0)
   })
 
   it('does not search again for a text it holds already', async () => {
-    const { clock, server, search } = setUp()
+    const { clock, places, search } = setUp()
     await searchFor(clock, search, 'Gre')
     await searchFor(clock, search, 'Gre')
-    expect(server.searchedTexts()).toEqual(['Gre'])
+    expect(places.searchedTexts()).toEqual(['Gre'])
   })
 
   it('shows the suggestions found, none active, with their type and context', async () => {
@@ -206,11 +192,11 @@ describe('usePlaceSearch', () => {
   })
 
   it('shows only the answer to the text it holds, ignoring a late answer to an earlier text', async () => {
-    const { clock, server, search } = setUp('held')
+    const { clock, places, search } = setUp('held')
     await searchFor(clock, search, 'Gre')
     await searchFor(clock, search, 'Gren')
-    await server.answer('Gren', placesFound('Grenoble'))
-    await server.answer('Gre', placesFound('Grèce'))
+    await places.answer('Gren', townsFound('Grenoble'))
+    await places.answer('Gre', townsFound('Grèce'))
     expect(names(search)).toEqual(['Grenoble'])
   })
 
@@ -223,26 +209,26 @@ describe('usePlaceSearch', () => {
   })
 
   it('closes the list and searches nothing when the text falls below 3 characters', async () => {
-    const { clock, server, search } = setUp()
+    const { clock, places, search } = setUp()
     await searchFor(clock, search, 'Gre')
     await searchFor(clock, search, 'Gr')
     expect(search.expanded.value).toBe(false)
-    expect(server.searchedTexts()).toEqual(['Gre'])
+    expect(places.searchedTexts()).toEqual(['Gre'])
   })
 
   it('ignores the answer to a text it no longer holds, below 3 characters', async () => {
-    const { clock, server, search } = setUp('held')
+    const { clock, places, search } = setUp('held')
     await searchFor(clock, search, 'Gre')
     await searchFor(clock, search, 'Gr')
-    await server.answer('Gre', placesFound('Grèce'))
+    await places.answer('Gre', townsFound('Grèce'))
     expect(search.expanded.value).toBe(false)
   })
 
   it.each([
-    ['GeoNames found nothing', placesFound(), 'Aucun résultat'],
-    ['GeoNames cannot answer', { kind: 'failed' } as const, 'Recherche indisponible'],
-  ])('says so when %s', async (_case, places, message) => {
-    const { clock, search } = setUp(() => places)
+    ['nothing is found', townsFound(), 'Aucun résultat'],
+    ['the search cannot be answered', { kind: 'unavailable' } as const, 'Recherche indisponible'],
+  ])('says so when %s', async (_case, answer, message) => {
+    const { clock, search } = setUp(() => answer)
     await searchFor(clock, search, 'Gre')
     expect(search.message.value).toBe(message)
     expect(search.expanded.value).toBe(false)
@@ -262,7 +248,7 @@ describe('usePlaceSearch', () => {
   })
 
   it('chooses the active suggestion: fills the field, closes the list, moves the map, and searches nothing more', async () => {
-    const { clock, server, map, search } = setUp()
+    const { clock, places, map, search } = setUp()
     await searchFor(clock, search, 'Gre')
     search.next()
     search.next()
@@ -271,7 +257,7 @@ describe('usePlaceSearch', () => {
     expect(search.text.value).toBe('Gre 2')
     expect(search.expanded.value).toBe(false)
     expect(map.destinations).toEqual([{ kind: 'view', view: { center: { lng: 5, lat: 45 }, zoom: 12 } }])
-    expect(server.searchedTexts()).toEqual(['Gre'])
+    expect(places.searchedTexts()).toEqual(['Gre'])
   })
 
   it('chooses the suggestion clicked', async () => {
@@ -292,7 +278,7 @@ describe('usePlaceSearch', () => {
   })
 
   it('closes the list, keeping the text and the map, and makes no search still to come', async () => {
-    const { clock, server, map, search } = setUp()
+    const { clock, places, map, search } = setUp()
     await searchFor(clock, search, 'Gre')
     search.next()
     search.close()
@@ -302,7 +288,7 @@ describe('usePlaceSearch', () => {
     search.type('Gren')
     search.close()
     await clock.advance(1000)
-    expect(server.searchedTexts()).toEqual(['Gre'])
+    expect(places.searchedTexts()).toEqual(['Gre'])
   })
 
   it('offers to clear the search only while the field holds text', () => {
@@ -323,25 +309,25 @@ describe('usePlaceSearch', () => {
   })
 
   it('makes no search for a text cleared before the pause', async () => {
-    const { clock, server, search } = setUp()
+    const { clock, places, search } = setUp()
     search.type('Gre')
     search.clear()
     await clock.advance(1000)
-    expect(server.requests).toEqual([])
+    expect(places.searchedTexts()).toEqual([])
   })
 
   it('ignores the answer to a search cleared while it was under way', async () => {
-    const { clock, server, search } = setUp('held')
+    const { clock, places, search } = setUp('held')
     await searchFor(clock, search, 'Gre')
     search.clear()
-    await server.answer('Gre', placesFound('Grèce'))
+    await places.answer('Gre', townsFound('Grèce'))
     expect(search.expanded.value).toBe(false)
     expect(search.message.value).toBeUndefined()
   })
 
   it('moves no map once disconnected, nor before it is connected', async () => {
     const clock = fakeClock()
-    const search = usePlaceSearch({ username: 'carto-qa', geonames: fakeGeoNames(atOnce).geonames, timer: clock.timer })
+    const search = usePlaceSearch({ finder: fakeFinder(atOnce).finder, timer: clock.timer })
     const map = recordingNavigation()
     await searchFor(clock, search, 'Gre')
     search.choose(0)

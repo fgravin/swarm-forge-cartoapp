@@ -19,10 +19,9 @@ import type { MapPort } from './mapPort'
 import { useMapScreen, type MapScreen } from './useMapScreen'
 import type { PlaceSearchServices } from './usePlaceSearch'
 
-// No GeoNames username: the place search is disabled, and asks nothing.
+// No place finder: the place search is disabled, and waits for nothing.
 const NO_PLACE_SEARCH: PlaceSearchServices = {
-  username: undefined,
-  geonames: { getJson: () => Promise.reject(new Error('the place search is disabled')) },
+  finder: undefined,
   timer: { after: () => () => {} },
 }
 

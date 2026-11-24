@@ -1,6 +1,5 @@
 import { computed, shallowRef, type ComputedRef } from 'vue'
 
-import { geonamesRequests, geonamesUsername, readSearchAnswer } from '../domain/geonames'
 import {
   chooseActiveSuggestion,
   chooseSuggestion,
@@ -19,13 +18,12 @@ import {
 } from '../domain/placeSearch'
 import { suggestionType } from '../domain/suggestions'
 import type { Connectable, MapNavigation } from './mapPort'
-import type { JsonSource, Timer } from './searchPorts'
+import type { PlaceFinder, Timer } from './searchPorts'
 
 /** What the place search needs from outside. */
 export interface PlaceSearchServices {
-  /** The GeoNames username the application was built with. Without one, the search is disabled. */
-  readonly username: string | undefined
-  readonly geonames: JsonSource
+  /** What finds the places a text names. Without one, the search is not configured, and is disabled. */
+  readonly finder: PlaceFinder | undefined
   readonly timer: Timer
 }
 
@@ -43,7 +41,7 @@ export interface SuggestionOption {
 /** What the search field, its suggestion list, and its "Effacer" button show and do. */
 export interface PlaceSearchState {
   readonly text: ComputedRef<string>
-  /** Whether the field refuses input: without a GeoNames username. */
+  /** Whether the field refuses input: without a place finder. */
   readonly disabled: boolean
   /** What the empty field shows. */
   readonly hint: string
@@ -86,11 +84,10 @@ function suggestionOptions({ results }: PlaceSearch): readonly SuggestionOption[
 }
 
 /**
- * Searches GeoNames for what the user types, once the user stops typing, and
- * moves the connected map to the suggestion the user chooses.
+ * Searches for what the user types, once the user stops typing, and moves the
+ * connected map to the suggestion the user chooses.
  */
-export function usePlaceSearch(services: PlaceSearchServices): PlaceSearchState & Connectable<MapNavigation> {
-  const username = geonamesUsername(services.username)
+export function usePlaceSearch({ finder, timer }: PlaceSearchServices): PlaceSearchState & Connectable<MapNavigation> {
   const search = shallowRef<PlaceSearch>(INITIAL_PLACE_SEARCH)
   const options = computed(() => suggestionOptions(search.value))
   let navigation: MapNavigation | undefined
@@ -101,26 +98,22 @@ export function usePlaceSearch(services: PlaceSearchServices): PlaceSearchState 
     cancelPause = undefined
   }
 
-  async function searchFor(text: string, user: string): Promise<void> {
+  async function searchFor(text: string, places: PlaceFinder): Promise<void> {
     search.value = startSearch(search.value)
-    const requests = geonamesRequests(text, user)
-    const [places, address] = await Promise.all([
-      services.geonames.getJson(requests.places),
-      services.geonames.getJson(requests.address),
-    ])
-    search.value = receiveAnswer(search.value, text, readSearchAnswer(places, address))
+    const answer = await places.find(text)
+    search.value = receiveAnswer(search.value, text, answer)
   }
 
   function type(text: string): void {
-    if (username === undefined) return
+    if (finder === undefined) return
     const next = typeText(search.value, text)
     if (next === search.value) return
     search.value = next
     stopPause()
     if (!isSearchable(next)) return
-    cancelPause = services.timer.after(SEARCH_PAUSE_MS, () => {
+    cancelPause = timer.after(SEARCH_PAUSE_MS, () => {
       cancelPause = undefined
-      void searchFor(text, username)
+      void searchFor(text, finder)
     })
   }
 
@@ -132,8 +125,8 @@ export function usePlaceSearch(services: PlaceSearchServices): PlaceSearchState 
 
   return {
     text: computed(() => search.value.text),
-    disabled: username === undefined,
-    hint: username === undefined ? UNCONFIGURED_HINT : SEARCH_HINT,
+    disabled: finder === undefined,
+    hint: finder === undefined ? UNCONFIGURED_HINT : SEARCH_HINT,
     expanded: computed(() => options.value.length > 0),
     options,
     activeOptionId: computed(() => options.value.find((option) => option.active)?.id),

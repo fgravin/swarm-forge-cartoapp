@@ -41,6 +41,23 @@ const DOM_TYPES = Object.fromEntries(
   ].map((name) => [name, { message: 'Translate DOM types in the adapter; use a type the domain or application owns.' }]),
 )
 
+const DOMAIN_IMPORTS = [
+  { group: ['vue', 'vue/*', 'maplibre-gl', 'maplibre-gl/*'], message: 'The domain is plain TypeScript.' },
+  { group: ['**/application/**', '**/adapters/**', '**/components/**', '*.vue'], message: 'The domain depends on nothing outside itself.' },
+]
+
+const APPLICATION_IMPORTS = [
+  { group: ['maplibre-gl', 'maplibre-gl/*'], message: 'Reach the map through a port the application owns.' },
+  { group: ['**/adapters/**', '**/components/**', '*.vue'], message: 'The application depends on the domain only.' },
+]
+
+// What GeoNames answers is read by the GeoNames place finder alone: the place search and its rules
+// know the `PlaceFinder` port and the suggestions it finds, not the GeoNames requests and JSON.
+const GEONAMES_FORMAT = {
+  regex: '(^|/)(geonames|geonamesPlaceFinder|jsonAnswer)$',
+  message: 'Only the GeoNames place finder reads what GeoNames answers. Ask the PlaceFinder port.',
+}
+
 export default tseslint.config(
   {
     ignores: [
@@ -76,21 +93,20 @@ export default tseslint.config(
   },
   {
     files: ['src/domain/**'],
-    rules: {
-      'no-restricted-imports': restrict([
-        { group: ['vue', 'vue/*', 'maplibre-gl', 'maplibre-gl/*'], message: 'The domain is plain TypeScript.' },
-        { group: ['**/application/**', '**/adapters/**', '**/components/**', '*.vue'], message: 'The domain depends on nothing outside itself.' },
-      ]),
-    },
+    ignores: ['src/domain/geonames.ts', 'src/domain/geonames.*.ts'],
+    rules: { 'no-restricted-imports': restrict([...DOMAIN_IMPORTS, GEONAMES_FORMAT]) },
+  },
+  {
+    files: ['src/domain/geonames.ts', 'src/domain/geonames.*.ts'],
+    rules: { 'no-restricted-imports': restrict(DOMAIN_IMPORTS) },
   },
   {
     files: ['src/application/**'],
-    rules: {
-      'no-restricted-imports': restrict([
-        { group: ['maplibre-gl', 'maplibre-gl/*'], message: 'Reach the map through a port the application owns.' },
-        { group: ['**/adapters/**', '**/components/**', '*.vue'], message: 'The application depends on the domain only.' },
-      ]),
-    },
+    rules: { 'no-restricted-imports': restrict(APPLICATION_IMPORTS) },
+  },
+  {
+    files: ['src/application/use*.ts'],
+    rules: { 'no-restricted-imports': restrict([...APPLICATION_IMPORTS, GEONAMES_FORMAT]) },
   },
   {
     files: ['src/domain/**', 'src/application/**'],

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { geonamesRequests, geonamesUsername, readSearchAnswer } from './geonames'
+import { geonamesRequests, geonamesUsername, placeKind, readSearchAnswer } from './geonames'
 import type { JsonAnswer } from './jsonAnswer'
 import type { Suggestion } from './suggestions'
 
@@ -50,6 +50,31 @@ function firstSuggestion(places: JsonAnswer, address: JsonAnswer = NO_ADDRESS): 
   const answer = readSearchAnswer(places, address)
   return answer.kind === 'found' ? answer.suggestions[0] : undefined
 }
+
+describe('placeKind', () => {
+  it.each([
+    ['A', 'PCLI', 'country'],
+    ['A', 'PCLD', 'country'],
+    ['A', 'PCL', 'country'],
+    ['A', 'ADM1', 'region'],
+    ['A', 'ADM2', 'region'],
+    ['P', 'PPLA3', 'town'],
+    ['P', 'PPLC', 'town'],
+    ['T', 'MT', 'place'],
+    ['H', 'LK', 'place'],
+    ['', '', 'place'],
+  ])('gives class %s and code %s the kind %s', (featureClass, featureCode, kind) => {
+    expect(placeKind(featureClass, featureCode)).toBe(kind)
+  })
+
+  it('takes a code that starts with PCL for a country whatever its class', () => {
+    expect(placeKind('P', 'PCLI')).toBe('country')
+  })
+
+  it('does not take a code that only contains PCL for a country', () => {
+    expect(placeKind('A', 'XPCL')).toBe('region')
+  })
+})
 
 describe('geonamesUsername', () => {
   it('takes a configured username', () => {
@@ -192,6 +217,12 @@ describe('readSearchAnswer', () => {
     expect(names(places(GRENOBLE), NO_ADDRESS)).toEqual(['Grenoble'])
     expect(names(places(GRENOBLE), answered({ address: { ...SAINT_ANDRE, lat: 'north' } }))).toEqual(['Grenoble'])
     expect(names(places(GRENOBLE), answered({ address: 'Grenoble' }))).toEqual(['Grenoble'])
+  })
+
+  it('finds no address that names nothing: without a house number, a street, or a town', () => {
+    const nameless = { ...SAINT_ANDRE, houseNumber: '', street: '', locality: '' }
+    expect(names(places(GRENOBLE), answered({ address: nameless }))).toEqual(['Grenoble'])
+    expect(names(places(GRENOBLE), answered({ address: { ...nameless, locality: 'Grenoble' } }))).toEqual(['Grenoble', 'Grenoble'])
   })
 
   it('finds nothing in the status 15, no result found, from either search', () => {

@@ -61,16 +61,17 @@ function fakeMap() {
   }
 }
 
-/** GeoNames finding Grenoble at once, and a pause the test ends. */
+const GRENOBLE: Destination = { kind: 'view', view: { center: { lng: 5.71667, lat: 45.16667 }, zoom: 12 } }
+
+/** A finder that finds Grenoble at once, and a pause the test ends. */
 function placeSearch() {
   let endPause = (): void => {}
   const services: PlaceSearchServices = {
-    username: 'carto-qa',
-    geonames: {
-      getJson: async (url) =>
-        url.includes('/searchJSON')
-          ? { kind: 'answered', body: { geonames: [{ name: 'Grenoble', fcl: 'P', lat: '45.16667', lng: '5.71667' }] } }
-          : { kind: 'answered', body: {} },
+    finder: {
+      find: async () => ({
+        kind: 'found',
+        suggestions: [{ name: 'Grenoble', kind: 'town', context: 'Isère, France', destination: GRENOBLE }],
+      }),
     },
     timer: {
       after(_milliseconds, action) {
@@ -88,8 +89,6 @@ function placeSearch() {
     },
   }
 }
-
-const GRENOBLE: Destination = { kind: 'view', view: { center: { lng: 5.71667, lat: 45.16667 }, zoom: 12 } }
 
 function selectedIds({ basemaps }: MapScreenState): readonly BasemapId[] {
   return basemaps.groups.value
